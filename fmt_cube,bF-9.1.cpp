@@ -7,8 +7,8 @@
 using namespace::std;
 int main()
 {
-    const int dim = 3, Neta = 6, Ngamma = 30, Nvacancy = 35, Ndiv = 21;//いくつ出力するか
-    const double eps = 1.0e-8, eta_set[2] = { 0.3, 0.1 }, gamma_set[2] = { 1.0, 1.0 }, vacancy_set[2] = { 0.0000001, 0.01 };//{初期値 ,刻み}
+    const int dim = 3, Neta = 2, Ngamma = 20, Nvacancy = 25, Ndiv = 21;//いくつ出力するか
+    const double eps = 1.0e-8, eta_set[2] = { 0.3, 0.1 }, gamma_set[2] = { 1.0, 1.0 }, vacancy_set[2] = { 0.1000001, 0.01 };//{初期値 ,刻み}
 
     bool err;
     int Fmin_at[Neta][2];
