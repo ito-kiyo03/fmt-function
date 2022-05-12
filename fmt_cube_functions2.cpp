@@ -563,7 +563,7 @@ double Fid_density_3D(const struct _parameter prm, const int n)
         integrand_x[i0] = trapezoidal_integration(n, integrand_y, delta);
     }
     val = trapezoidal_integration(n, integrand_x, delta);//ここまでで単位胞あたりの理想自由エネルギー
-    return val / pow(prm.lambda, 2);// lambda^2 で割って単位体積当たりの値に変換
+    return val / pow(prm.lambda, 3);// lambda^3 で割って単位体積当たりの値に変換
 }
 
 //一粒子当たりの理想自由エネルギー。
@@ -978,7 +978,7 @@ double Fex_density_3D_naive(const struct _parameter prm, const int n)
         integrand_x[i0] = trapezoidal_integration(n, integrand_y, delta);
     }
     val = trapezoidal_integration(n, integrand_x, delta);//ここまでで単位胞あたりの理想自由エネルギー
-    return val / pow(prm.lambda, 3);// lambda^2 で割って単位体積当たりの値に変換
+    return val / pow(prm.lambda, 3);// lambda^3 で割って単位体積当たりの値に変換
 }
 
 void write_setting(ofstream& ofs, const int dim, const int Neta, const int Nvacancy, const int Ngamma, const double eps, const double eta_set[], const double vacancy_set[], const double gamma_set[])
@@ -1009,7 +1009,7 @@ void write_profile_2D(ofstream& ofs, const _parameter prm, const int Ndiv, const
 {
     double r[2], rdiv[Ndiv];
     // 描画範囲
-    double range[2] = { -1.5 * prm.lambda, 1.5 * prm.lambda };
+    double range[2] = { -0.5 * prm.lambda, 0.5 * prm.lambda };
     if (quarter)
     {
         range[0] = 0.0;
@@ -1123,7 +1123,9 @@ void write_profile_3D(ofstream& ofs, const _parameter prm, const int Ndiv, const
         for (int j = 0; j < Ndiv; j++)
         {
             r[1] = rdiv[j];
-            for (int k = 0; k < Ndiv; k++)
+            r[2] = rdiv[0];
+            ofs << r[0] << " " << r[1] << " " << r[2] << " " << n0_3D(prm, r);
+            /*for (int k = 0; k < Ndiv; k++)
             {
                 r[2] = rdiv[k];
                 double n0 = n0_3D(prm, r);
@@ -1141,8 +1143,8 @@ void write_profile_3D(ofstream& ofs, const _parameter prm, const int Ndiv, const
                     n1n2 += n1[a] * n2[a];
                     n2_all *= n2[a];
                 }
-                ofs << r[0] << " " << r[1] << " " << r[2] << " " << n0 <<endl;//<< " " << n1n2 << " " << n2_all << " " << n3 << endl;
-            }
+                //ofs << r[0] << " " << r[1] << " " << r[2] << " " << n0 << " " << n1n2 << " " << n2_all << " " << n3 << endl;
+            }*/
             ofs << endl;
         }
         ofs << endl;
@@ -1171,7 +1173,9 @@ void write_profile_3DPhi(ofstream& ofs, const _parameter prm, const int Ndiv, co
         for (int j = 0; j < Ndiv; j++)
         {
             r[1] = rdiv[j];
-            for (int k = 0; k < Ndiv; k++)
+            r[2] = rdiv[0];
+            ofs << r[0] << " " << r[1] << " " << r[2] << " " << n0_3D(prm, r) * log(abs(1.0 - n3_3D(prm, r)));
+            /*for (int k = 0; k < Ndiv; k++)
             {
                 r[2] = rdiv[k];
                 double n0 = n0_3D(prm, r);
@@ -1189,8 +1193,8 @@ void write_profile_3DPhi(ofstream& ofs, const _parameter prm, const int Ndiv, co
                     n1n2 += n1[a] * n2[a];
                     n2_all *= n2[a];
                 }
-                ofs << r[0] << " " << r[1] << " " << n0 * log(abs(1.0 - n3)) << " " << n1n2 / abs(1.0 - n3) << " " << n2_all / pow(1 - n3, 3) << endl;
-            }
+                //ofs << r[0] << " " << r[1] << " " << n0 * log(abs(1.0 - n3)) << " " << n1n2 / abs(1.0 - n3) << " " << n2_all / pow(1 - n3, 3) << endl;
+            }*/
             ofs << endl;
         }
         ofs << endl;
@@ -1219,11 +1223,13 @@ void write_profile_3Drho(ofstream& ofs, const _parameter prm, const int Ndiv, co
         for (int j = 0; j < Ndiv; j++)
         {
             r[1] = rdiv[j];
-            for (int k = 0; k < Ndiv; k++)
+            r[2] = rdiv[0];
+            ofs << r[0] << " " << r[1] << " " << r[2] << " " << rho_3D(prm, r);
+            /*for (int k = 0; k < Ndiv; k++)
             {
                 r[2] = rdiv[k];
                 ofs << r[0] << " " << r[1] << " " << r[2] << " " << rho_3D(prm, r) << endl;
-            }
+            }*/
             ofs << endl;
         }
         ofs << endl;
