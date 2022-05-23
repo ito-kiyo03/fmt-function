@@ -21,6 +21,7 @@ void write_profile_2D(ofstream &ofs, const _parameter prm, const int Ndiv, const
 double Fid_density_3D(const struct _parameter p, const int n);
 double Fex_density_3D(const struct _parameter prm, const double rel_error_req);
 void write_profile_3D(ofstream& ofs, const _parameter prm, const int Ndiv, const bool write_title, const bool quarter = true, const string pre_string = "");
+void write_profile_3Dna(ofstream& ofs, const _parameter prm, const int Ndiv, const bool write_title, const bool quarter = true, const string pre_string = "");
 void write_profile_3DPhi(ofstream& ofs, const _parameter prm, const int Ndiv, const bool write_title, const bool quarter = true, const string pre_string = "");
 void write_profile_3Drho(ofstream& ofs, const _parameter prm, const int Ndiv, const bool write_title, const bool quarter = true, const string pre_string = "");
 
