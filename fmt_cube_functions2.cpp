@@ -843,7 +843,7 @@ double integrate_Phi_2D_wrt_x(const double r1)
     return val;
 }
 
-double integrate_Phi_3D_wrt_yz(const double r2)
+double integrate_Phi_3D_wrt_x(const double r2)
 {
     extern const int lenaw_global;
     extern double r2_global, aw_global[lenaw_global];
@@ -887,7 +887,7 @@ double integrate_Phi_3D_wrt_yz(const double r2)
     return val;
 }
 
-double integrate_Phi_3D_wrt_xy(const double r1)
+double integrate_Phi_3D_wrt_y(const double r1)
 {
     extern const int lenaw_global;
     extern double r1_global, aw_global[lenaw_global];
