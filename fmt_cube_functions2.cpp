@@ -8,7 +8,7 @@
 #include "intde2.h"
 using namespace::std;
 const int lenaw_global = 8000;
-double r1_global, aw_global[lenaw_global];
+double r1_global, r2_global, aw_global[lenaw_global];
 _parameter prm_global;
 
 // 与えられた関数 f(prm, r[]) について、r[1] = given_r1 のときのf(prm, r[])= 0 の解 r[0] を range[0] から range[1] の範囲で求める関数。
@@ -96,9 +96,9 @@ bool solve_f_eq_0_naive(const _parameter prm, const double given_r1, double (*f)
 // 3次元でカットオフ距離（関数 cutoff_r_for_rho を参照）をニュートンラフソン法で求めるための補助関数
 void get_delta_and_slope_3D(const struct _parameter prm, const double x, double& delta, double& slope)
 {
-  double y = prm.sqrt_gamma * x;
-  delta = prm.eta * (2 * y * exp( - y * y)/ sqrt(M_PI) + erfc(y));
-  slope = - prm.eta * pow(prm.gamma / M_PI, 1.5) * 4 * M_PI * exp(- pow(y, 2)) * x * x;
+    double y = prm.sqrt_gamma * x;
+    delta = prm.eta * (2 * y * exp(-y * y) / sqrt(M_PI) + erfc(y));
+    slope = -prm.eta * pow(prm.gamma / M_PI, 1.5) * 4 * M_PI * exp(-pow(y, 2)) * x * x;
 }
 
 // カットオフ距離、つまりこれより遠い全ての格子点を無視したとき、誤差が eps になる距離を戻す関数。
@@ -368,6 +368,23 @@ bool solution_n2_eq_1_2D_exists(const _parameter prm, const int n)
     return found;
 }
 
+bool solution_n3_eq_1_3D_exists(const _parameter prm, const int n)
+{
+    bool found = false;
+    double r[2], result_range[2], delta = 0.5 * prm.lambda / (n - 1), range[2] = { 0.0, 0.5 * prm.lambda };
+    for (int i1 = 0; i1 < n; i1++)
+    {
+        r[1] = i1 * delta;
+        range[0] = r[1];
+        found = solve_f_eq_0_naive(prm, r[1], one_minus_n3_3D, range, n - i1, result_range);
+        if (found)
+        {
+            break;
+        }
+    }
+    return found;
+}
+
 // 点 r[] = (x, y) における2次元の余剰自由エネルギー密度
 // 計算量を減らすため、定義した荷重関数 n0_2D, n1_2D, n2_2D を使っていない
 double Phi_2D(const struct _parameter prm, const double r[])
@@ -426,17 +443,17 @@ double Phi_3D(const struct _parameter prm, const double r[])
         n1n2 += n1[i] * n2[i];
         n2_all *= n2[i];
     }
-    return -n0 * log(abs(1 - n3)) + n1n2 / abs(1 - n3) + n2_all / pow(1 - n3, 2);
+    return -n0 * log(abs(1.0 - n3)) + n1n2 / abs(1.0 - n3) + n2_all / pow(1.0 - n3, 2);
 }
 
 // 点 r[] = (x, y, z) における3次元の余剰自由エネルギー密度
-// 1次元積分のルーチン intde2 を用いる都合上、パラメータおよび y 座標にそれぞれグローバル変数 prm_global および r1_global を利用して
+// 1次元積分のルーチン intde2 を用いる都合上、パラメータおよび y 座標にそれぞれグローバル変数 prm_global および r2_global を利用して
 // 1 変数関数として定義する。
 double Phi_3D(double r0)
 {
-    extern double r1_global;
+    extern double r1_global, r2_global;
     extern _parameter prm_global;
-    double Tval[3], Zval[3], n0, n1[3], n2[3], n1n2 = 0.0, n2_all = 1.0, n3, r[2] = { r0, r1_global };
+    double Tval[3], Zval[3], n0, n1[3], n2[3], n1n2 = 0.0, n2_all = 1.0, n3, r[3] = { r0, r1_global, r2_global };
     for (int i1 = 0; i1 < 3; i1++)
     {
         Tval[i1] = T(prm_global, r[i1]);
@@ -455,7 +472,7 @@ double Phi_3D(double r0)
         n1n2 += n1[i] * n2[i];
         n2_all *= n2[i];
     }
-    return -n0 * log(abs(1 - n3)) + n1n2 / abs(1 - n3) + n2_all / pow(1 - n3, 2);
+    return -n0 * log(abs(1.0 - n3)) + n1n2 / abs(1.0 - n3) + n2_all / pow(1.0 - n3, 2);
 }
 
 // 点 r[] = (x, y) における密度 rho を求める関数
@@ -826,35 +843,35 @@ double integrate_Phi_2D_wrt_x(const double r1)
     return val;
 }
 
-double integrate_Phi_3D_wrt_x(const double r1)
+double integrate_Phi_3D_wrt_yz(const double r2)
 {
     extern const int lenaw_global;
-    extern double r1_global, aw_global[lenaw_global];
+    extern double r2_global, aw_global[lenaw_global];
     extern _parameter prm_global;
     const int Ndiv = 100, Mdiv = 50;
-    double integ_result[2] = { 0.0, 0.0 }, integ_err[2] = { 0.0, 0.0 }, r0_range[2] = { r1, 0.5 * prm_global.lambda };
+    double integ_result[2] = { 0.0, 0.0 }, integ_err[2] = { 0.0, 0.0 }, r2_range[2] = { r2, 0.5 * prm_global.lambda };
     double solution, val = nan("");
     bool integrable;
-    r1_global = r1;
+    r2_global = r2;
     // n3 = 1 の解があるかどうか探す
-    solution = solution_n3_eq_1_3D(prm_global, r1, 1.e-13, Ndiv, Mdiv);
+    solution = solution_n3_eq_1_3D(prm_global, r2, 1.e-13, Ndiv, Mdiv);
     if (isnan(solution)) // n3 = 1 の解がない場合、通常の積分で問題ない
     {
         // r0 積分の範囲は r0_range[0] から r0_range[1]。(prm_global.lambda)
-        intde(Phi_3D, r0_range[0], r0_range[1], aw_global, &integ_result[0], &integ_err[0]);
+        intde(Phi_3D, r2_range[0], r2_range[1], aw_global, &integ_result[0], &integ_err[0]);
         val = integ_result[0];
     }
-    else // n2 = 1 の解 solution がある場合、r0 積分領域を solution で分割して和を取る
+    else // n3 = 1 の解 solution がある場合、r0 積分領域を solution で分割して和を取る
     {
-        intde(Phi_3D, r0_range[0], solution - 1.0e-8, aw_global, &integ_result[0], &integ_err[0]);
-        intde(Phi_3D, solution + 1.0e-8, r0_range[1], aw_global, &integ_result[1], &integ_err[1]);
+        intde(Phi_3D, r2_range[0], solution - 1.0e-8, aw_global, &integ_result[0], &integ_err[0]);
+        intde(Phi_3D, solution + 1.0e-8, r2_range[1], aw_global, &integ_result[1], &integ_err[1]);
         if (integ_err[0] < 0 || integ_err[1] < 0 || integ_err[0] > 1.0 || integ_err[1] > 1.0) // 分割した積分が異常値の場合
         {
-            integrable = r0range_n3_eq_1_3D(prm_global, r1, r0_range);
-            // n2 ~= 1 となる領域のすぐ外側で Phi の各項が十分に 0 に近いとき、その領域からの積分の寄与は 0 とみなし、n2 != 1 の領域だけで積分
+            integrable = r0range_n3_eq_1_3D(prm_global, r2, r2_range);
+            // n3 ~= 1 となる領域のすぐ外側で Phi の各項が十分に 0 に近いとき、その領域からの積分の寄与は 0 とみなし、n3 != 1 の領域だけで積分
             if (integrable)
             {
-                intde(Phi_3D, r0_range[0], r0_range[1], aw_global, &integ_result[0], &integ_err[0]);
+                intde(Phi_3D, r2_range[0], r2_range[1], aw_global, &integ_result[0], &integ_err[0]);
                 val = integ_result[0];
             }
             else
@@ -870,16 +887,79 @@ double integrate_Phi_3D_wrt_x(const double r1)
     return val;
 }
 
+double integrate_Phi_3D_wrt_xy(const double r1)
+{
+    extern const int lenaw_global;
+    extern double r1_global, aw_global[lenaw_global];
+    extern _parameter prm_global;
+    const int Ndiv = 100, Mdiv = 50;
+    double integ_result[2] = { 0.0, 0.0 }, integ_err[2] = { 0.0, 0.0 }, r1_range[2] = { r1, 0.5 * prm_global.lambda };
+    double solution, val = nan("");
+    bool integrable;
+    r1_global = r1;
+    intde(integrate_Phi_3D_wrt_yz, r1_range[0], r1_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    // r1 積分の範囲は r1_range[0] から r1_range[1]。(prm_global.lambda)
+    //intde(Phi_3D, r1_range[0], r1_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    val = integ_result[0];
+
+    return val;
+}
+
+/*double integrate_Phi_3D_wrt_xy(const double r1)
+{
+    extern const int lenaw_global;
+    extern double r1_global, aw_global[lenaw_global];
+    extern _parameter prm_global;
+    const int Ndiv = 100, Mdiv = 50;
+    double integ_result[2] = { 0.0, 0.0 }, integ_err[2] = { 0.0, 0.0 }, r1_range[2] = { r1, 0.5 * prm_global.lambda };
+    double solution, val = nan("");
+    bool integrable;
+    r1_global = r1;
+    intde(integrate_Phi_3D_wrt_yz, r1_range[0], r1_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    // n3 = 1 の解があるかどうか探す
+    solution = solution_n3_eq_1_3D(prm_global, r1, 1.e-13, Ndiv, Mdiv);
+    if (isnan(solution)) // n3 = 1 の解がない場合、通常の積分で問題ない
+    {
+        // r0 積分の範囲は r0_range[0] から r0_range[1]。(prm_global.lambda)
+        intde(Phi_3D, r1_range[0], r1_range[1], aw_global, &integ_result[0], &integ_err[0]);
+        val = integ_result[0];
+    }
+    else // n3 = 1 の解 solution がある場合、r0 積分領域を solution で分割して和を取る
+    {
+        intde(Phi_3D, r1_range[0], solution - 1.0e-8, aw_global, &integ_result[0], &integ_err[0]);
+        intde(Phi_3D, solution + 1.0e-8, r1_range[1], aw_global, &integ_result[1], &integ_err[1]);
+        if (integ_err[0] < 0 || integ_err[1] < 0 || integ_err[0] > 1.0 || integ_err[1] > 1.0) // 分割した積分が異常値の場合
+        {
+            integrable = r0range_n3_eq_1_3D(prm_global, r1, r1_range);
+            // n3 ~= 1 となる領域のすぐ外側で Phi の各項が十分に 0 に近いとき、その領域からの積分の寄与は 0 とみなし、n3 != 1 の領域だけで積分
+            if (integrable)
+            {
+                intde(Phi_3D, r1_range[0], r1_range[1], aw_global, &integ_result[0], &integ_err[0]);
+                val = integ_result[0];
+            }
+            else
+            {
+                val = nan("");
+            }
+        }
+        else // 分割した積分が正常値の場合
+        {
+            val = integ_result[0] + integ_result[1];
+        }
+    }
+    return val;
+}*/
+
 double Fex_density_2D(const struct _parameter prm, const double rel_error_req)
 {
   extern const int lenaw_global;
   extern double aw_global[lenaw_global];
   extern _parameter prm_global;
   const double tiny = 1.e-307;
-  double integ_result, integ_err, r1_range[2] = {0.0, 0.5 * prm.lambda};
+  double integ_result, integ_err, r0_range[2] = {0.0, 0.5 * prm.lambda};
   prm_global = prm;
   intdeini(lenaw_global, tiny, rel_error_req, aw_global);
-  intde(integrate_Phi_2D_wrt_x, r1_range[0], r1_range[1], aw_global, &integ_result, &integ_err);
+  intde(integrate_Phi_2D_wrt_x, r0_range[0], r0_range[1], aw_global, &integ_result, &integ_err);
   // ここまでで、integ_result は単位胞の 1/8 あたりの余剰自由エネルギー
   return 8 * integ_result / pow(prm.lambda, 2);//単位体積あたりの余剰自由エネルギーに変換
 }
@@ -890,12 +970,12 @@ double Fex_density_3D(const struct _parameter prm, const double rel_error_req)
     extern double aw_global[lenaw_global];
     extern _parameter prm_global;
     const double tiny = 1.e-307;
-    double integ_result, integ_err, r1_range[3] = { 0.0, 0.5 * prm.lambda,0.5 * prm.lambda };
+    double integ_result, integ_err, r1_range[2] = { 0.0, 0.5 * prm.lambda };
     prm_global = prm;
     intdeini(lenaw_global, tiny, rel_error_req, aw_global);
-    intde(integrate_Phi_3D_wrt_x, r1_range[0], r1_range[1], aw_global, &integ_result, &integ_err);
+    intde(integrate_Phi_3D_wrt_xy, r1_range[0], r1_range[1], aw_global, &integ_result, &integ_err);
     // ここまでで、integ_result は単位胞の 1/8 あたりの余剰自由エネルギー
-    return 8 * integ_result / pow(prm.lambda, 3);//単位体積あたりの余剰自由エネルギーに変換
+    return 32 * integ_result / pow(prm.lambda, 3);//単位体積あたりの余剰自由エネルギーに変換
 }
 
 void F_density_dD(const int dim, const struct _parameter prm, const double rel_error_req, double F_density_set[])
@@ -933,7 +1013,6 @@ void F_density_dD(const int dim, const struct _parameter prm, const double rel_e
     }
     //id+ex
     F_density_set[2] = F_density_set[0] + F_density_set[1];
-
 }
 
 // 2次元の単位体積あたりの余剰自由エネルギー。
@@ -971,7 +1050,7 @@ double Fex_density_3D_naive(const struct _parameter prm, const int n)
             for (int i2 = 0; i2 < n; i2++)
             {
                 r[2] = rdiv[i2];
-                integrand_z[i2] = Fid_density_3D(prm, r);
+                integrand_z[i2] = Phi_3D(prm, r);
             }
             integrand_y[i1] = trapezoidal_integration(n, integrand_z, delta);
         }
@@ -998,9 +1077,9 @@ void write_parameter(ofstream& ofs, const _parameter prm, const bool write_title
 {
     if (write_title)
     {
-        ofs << pre_string << "eta, gamma, vacancy, lambda, cutoff_r_for_rho" << endl;
+        ofs << pre_string << "eta, gamma, vacancy, lambda, coeff_rho, cutoff_r_for_rho" << endl;
     }
-    ofs << pre_string << prm.eta << ", " << prm.gamma << ", " << prm.vacancy << ", " << prm.lambda << ", " << prm.cutoff_r_for_rho << endl;
+    ofs << pre_string << prm.eta << ", " << prm.gamma << ", " << prm.vacancy << ", " << prm.lambda << ", " << prm.coeff_rho << " , " << prm.cutoff_r_for_rho << endl;
 }
 
 // 密度プロファイル、荷重密度、Phi を、xy 平面を各軸 Ndiv - 1 個に離散化して描く
@@ -1119,12 +1198,61 @@ void write_profile_3D(ofstream& ofs, const _parameter prm, const int Ndiv, const
     write_parameter(ofs, prm, write_title, pre_string);
     for (int i = 0; i < Ndiv; i++)
     {
+        r[0] = 0.0;
+        r[1] = rdiv[i];
+        for (int j = 0; j < Ndiv; j++)
+        {
+            r[2] = rdiv[j];
+            for (int k = 0; k < Ndiv; k++)
+            {
+                r[2] = rdiv[k];
+                ofs << r[0] << " " << r[1] << " " << r[2] << " " << Phi_3D(prm, r) << endl;
+            }
+            ofs << endl;
+        }
+        ofs << endl;
+    }
+    ofs << endl;
+}
+
+void write_profile_3Dna(ofstream& ofs, const _parameter prm, const int Ndiv, const bool write_title, const bool quarter, const string pre_string)
+{
+    double r[3], rdiv[Ndiv];
+    // 描画範囲
+    double range[2] = { -0.5 * prm.lambda, 0.5 * prm.lambda };
+    if (quarter)
+    {
+        range[0] = 0.0;
+    }
+    // xy 平面離散化
+    for (int i = 0; i < Ndiv; i++)
+    {
+        rdiv[i] = range[0] + (range[1] - range[0]) * i / (Ndiv - 1);
+    }
+    write_parameter(ofs, prm, write_title, pre_string);
+    for (int i = 0; i < Ndiv; i++)
+    {
+        r[2] = 0.0;
         r[0] = rdiv[i];
         for (int j = 0; j < Ndiv; j++)
         {
             r[1] = rdiv[j];
-            r[2] = rdiv[0];
-            ofs << r[0] << " " << r[1] << " " << r[2] << " " << n0_3D(prm, r);
+            double n0 = n0_3D(prm, r);
+            double n1[3], n2[3], n1n2 = 0.0, n2_all = 1.0;
+            double n3 = n3_3D(prm, r);
+
+            n1[0] = n1x_3D(prm, r);
+            n1[1] = n1y_3D(prm, r);
+            n1[2] = n1z_3D(prm, r);
+            n2[0] = n2x_3D(prm, r);
+            n2[1] = n2y_3D(prm, r);
+            n2[2] = n2z_3D(prm, r);
+            for (int a = 0; a < 3; a++)
+            {
+                n1n2 += n1[a] * n2[a];
+                n2_all *= n2[a];
+            }
+            ofs << r[0] << " " << r[1] << " " << r[2] << " " << n0 << " " << n1n2 << " " << n2_all << " " << n3;
             /*for (int k = 0; k < Ndiv; k++)
             {
                 r[2] = rdiv[k];
@@ -1169,12 +1297,27 @@ void write_profile_3DPhi(ofstream& ofs, const _parameter prm, const int Ndiv, co
     write_parameter(ofs, prm, write_title, pre_string);
     for (int i = 0; i < Ndiv; i++)
     {
+        r[2] = 0.0;
         r[0] = rdiv[i];
         for (int j = 0; j < Ndiv; j++)
         {
             r[1] = rdiv[j];
-            r[2] = rdiv[0];
-            ofs << r[0] << " " << r[1] << " " << r[2] << " " << n0_3D(prm, r) * log(abs(1.0 - n3_3D(prm, r)));
+            double n0 = n0_3D(prm, r);
+            double n1[3], n2[3], n1n2 = 0.0, n2_all = 1.0;
+            double n3 = n3_3D(prm, r);
+
+            n1[0] = n1x_3D(prm, r);
+            n1[1] = n1y_3D(prm, r);
+            n1[2] = n1z_3D(prm, r);
+            n2[0] = n2x_3D(prm, r);
+            n2[1] = n2y_3D(prm, r);
+            n2[2] = n2z_3D(prm, r);
+            for (int a = 0; a < 3; a++)
+            {
+                n1n2 += n1[a] * n2[a];
+                n2_all *= n2[a];
+            }
+            ofs << r[0] << " " << r[1] << " " << r[2] << " " << n0 * log(abs(1.0 - n3)) << " " << n1n2 / abs(1.0 - n3) << " " << n2_all / pow(1 - n3, 3);
             /*for (int k = 0; k < Ndiv; k++)
             {
                 r[2] = rdiv[k];
@@ -1219,11 +1362,11 @@ void write_profile_3Drho(ofstream& ofs, const _parameter prm, const int Ndiv, co
     write_parameter(ofs, prm, write_title, pre_string);
     for (int i = 0; i < Ndiv; i++)
     {
+        r[2] = 0.0;
         r[0] = rdiv[i];
         for (int j = 0; j < Ndiv; j++)
         {
             r[1] = rdiv[j];
-            r[2] = rdiv[0];
             ofs << r[0] << " " << r[1] << " " << r[2] << " " << rho_3D(prm, r);
             /*for (int k = 0; k < Ndiv; k++)
             {
