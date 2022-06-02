@@ -854,13 +854,13 @@ double integrate_Phi_3D_wrt_x(const double r1)
     bool integrable;
     r1_global = r1;
     // n3 = 1 の解があるかどうか探す
-    solution = solution_n3_eq_1_3D(prm_global, r1, 1.e-13, Ndiv, Mdiv);
-    if (isnan(solution)) // n3 = 1 の解がない場合、通常の積分で問題ない
-    {
+    //solution = solution_n3_eq_1_3D(prm_global, r1, 1.e-13, Ndiv, Mdiv);
+    //if (isnan(solution)) // n3 = 1 の解がない場合、通常の積分で問題ない
+    //{
         // r0 積分の範囲は r0_range[0] から r0_range[1]。(prm_global.lambda)
-        intde(Phi_3D, r1_range[0], r1_range[1], aw_global, &integ_result[0], &integ_err[0]);
-        val = integ_result[0];
-    }
+    intde(Phi_3D, r1_range[0], r1_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    val = integ_result[0];
+    /*}
     else // n3 = 1 の解 solution がある場合、r0 積分領域を solution で分割して和を取る
     {
         intde(Phi_3D, r1_range[0], solution - 1.0e-8, aw_global, &integ_result[0], &integ_err[0]);
@@ -883,7 +883,7 @@ double integrate_Phi_3D_wrt_x(const double r1)
         {
             val = integ_result[0] + integ_result[1];
         }
-    }
+     }*/
     return val;
 }
 
@@ -898,43 +898,39 @@ double integrate_Phi_3D_wrt_y(const double r2)
     bool integrable;
     r2_global = r2;
     intde(integrate_Phi_3D_wrt_x, r2_range[0], r2_range[1], aw_global, &integ_result[0], &integ_err[0]);
-    // r2 積分の範囲は r2_range[0] から r2_range[1]。(prm_global.lambda)
-    //intde(Phi_3D, r1_range[0], r1_range[1], aw_global, &integ_result[0], &integ_err[0]);
     val = integ_result[0];
-
     return val;
 }
 
-/*double integrate_Phi_3D_wrt_xy(const double r1)
+/*double integrate_Phi_3D_wrt_y(const double r2)
 {
     extern const int lenaw_global;
-    extern double r1_global, aw_global[lenaw_global];
+    extern double r2_global, aw_global[lenaw_global];
     extern _parameter prm_global;
     const int Ndiv = 100, Mdiv = 50;
-    double integ_result[2] = { 0.0, 0.0 }, integ_err[2] = { 0.0, 0.0 }, r1_range[2] = { r1, 0.5 * prm_global.lambda };
+    double integ_result[2] = { 0.0, 0.0 }, integ_err[2] = { 0.0, 0.0 }, r2_range[2] = { r2, 0.5 * prm_global.lambda };
     double solution, val = nan("");
     bool integrable;
-    r1_global = r1;
-    intde(integrate_Phi_3D_wrt_yz, r1_range[0], r1_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    r2_global = r2;
     // n3 = 1 の解があるかどうか探す
-    solution = solution_n3_eq_1_3D(prm_global, r1, 1.e-13, Ndiv, Mdiv);
+    solution = solution_n3_eq_1_3D(prm_global, r2, 1.e-13, Ndiv, Mdiv);
     if (isnan(solution)) // n3 = 1 の解がない場合、通常の積分で問題ない
     {
         // r0 積分の範囲は r0_range[0] から r0_range[1]。(prm_global.lambda)
-        intde(Phi_3D, r1_range[0], r1_range[1], aw_global, &integ_result[0], &integ_err[0]);
+        intde(Phi_3D, r2_range[0], r2_range[1], aw_global, &integ_result[0], &integ_err[0]);
         val = integ_result[0];
     }
     else // n3 = 1 の解 solution がある場合、r0 積分領域を solution で分割して和を取る
     {
-        intde(Phi_3D, r1_range[0], solution - 1.0e-8, aw_global, &integ_result[0], &integ_err[0]);
-        intde(Phi_3D, solution + 1.0e-8, r1_range[1], aw_global, &integ_result[1], &integ_err[1]);
+        intde(Phi_3D, r2_range[0], solution - 1.0e-8, aw_global, &integ_result[0], &integ_err[0]);
+        intde(Phi_3D, solution + 1.0e-8, r2_range[1], aw_global, &integ_result[1], &integ_err[1]);
         if (integ_err[0] < 0 || integ_err[1] < 0 || integ_err[0] > 1.0 || integ_err[1] > 1.0) // 分割した積分が異常値の場合
         {
-            integrable = r0range_n3_eq_1_3D(prm_global, r1, r1_range);
+            integrable = r0range_n3_eq_1_3D(prm_global, r2, r2_range);
             // n3 ~= 1 となる領域のすぐ外側で Phi の各項が十分に 0 に近いとき、その領域からの積分の寄与は 0 とみなし、n3 != 1 の領域だけで積分
             if (integrable)
             {
-                intde(Phi_3D, r1_range[0], r1_range[1], aw_global, &integ_result[0], &integ_err[0]);
+                intde(Phi_3D, r2_range[0], r2_range[1], aw_global, &integ_result[0], &integ_err[0]);
                 val = integ_result[0];
             }
             else
@@ -974,7 +970,7 @@ double Fex_density_3D(const struct _parameter prm, const double rel_error_req)
     prm_global = prm;
     intdeini(lenaw_global, tiny, rel_error_req, aw_global);
     intde(integrate_Phi_3D_wrt_y, r3_range[0], r3_range[1], aw_global, &integ_result, &integ_err);
-    // ここまでで、integ_result は単位胞の 1/8 あたりの余剰自由エネルギー
+    // ここまでで、integ_result は単位胞の 1/32 あたりの余剰自由エネルギー
     return 32 * integ_result / pow(prm.lambda, 3);//単位体積あたりの余剰自由エネルギーに変換
 }
 
