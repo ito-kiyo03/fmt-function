@@ -971,21 +971,25 @@ double Fex_density_3D(const struct _parameter prm, const double rel_error_req)
     intdeini(lenaw_global, tiny, rel_error_req, aw_global);
     intde(integrate_Phi_3D_wrt_y, r3_range[0], r3_range[1], aw_global, &integ_result, &integ_err);
     // ここまでで、integ_result は単位胞の 1/32 あたりの余剰自由エネルギー
-    return 32 * integ_result / pow(prm.lambda, 3);//単位体積あたりの余剰自由エネルギーに変換
+    //return 32 * integ_result / pow(prm.lambda, 3);//単位体積あたりの余剰自由エネルギーに変換
+    return 48 * integ_result / pow(prm.lambda, 3);//単位体積あたりの余剰自由エネルギーに変換
 }
 
-void F_density_dD(const int dim, const struct _parameter prm, const double rel_error_req, double F_density_set[])
+int F_density_dD(const int dim, const struct _parameter prm, const double rel_error_req, double F_density_set[])
 {
+    int return_value;
     //理想自由エネルギー
     if (dim == 2)
     {
         if (prm.cutoff_r_for_rho < 0.5)
         {
             F_density_set[0] = Fid_density_approx(dim, prm);//近似
+            return_value = 1;
         }
         else
         {
             F_density_set[0] = Fid_density_2D(prm, 100);
+            return_value = 0;
         }
         //余剰自由エネルギー
         F_density_set[1] = Fex_density_2D(prm, rel_error_req);
@@ -995,10 +999,12 @@ void F_density_dD(const int dim, const struct _parameter prm, const double rel_e
         if (prm.cutoff_r_for_rho < 0.5)
         {
             F_density_set[0] = Fid_density_approx(dim, prm);//近似
+            return_value = 1;
         }
         else
         {
             F_density_set[0] = Fid_density_3D(prm, 100);
+            return_value = 0;
         }
         //余剰自由エネルギー
         F_density_set[1] = Fex_density_3D(prm, rel_error_req);
@@ -1009,6 +1015,7 @@ void F_density_dD(const int dim, const struct _parameter prm, const double rel_e
     }
     //id+ex
     F_density_set[2] = F_density_set[0] + F_density_set[1];
+    return return_value;
 }
 
 // 2次元の単位体積あたりの余剰自由エネルギー。
@@ -1313,7 +1320,7 @@ void write_profile_3DPhi(ofstream& ofs, const _parameter prm, const int Ndiv, co
                 n1n2 += n1[a] * n2[a];
                 n2_all *= n2[a];
             }
-            ofs << r[0] << " " << r[1] << " " << r[2] << " " << n0 * log(abs(1.0 - n3)) << " " << n1n2 / abs(1.0 - n3) << " " << n2_all / pow(1 - n3, 3);
+            ofs << r[0] << " " << r[1] << " " << r[2] << " " << n0 * log(abs(1.0 - n3)) << " " << n1n2 / abs(1.0 - n3) << " " << n2_all / pow(1 - n3, 2);
             /*for (int k = 0; k < Ndiv; k++)
             {
                 r[2] = rdiv[k];
@@ -1332,7 +1339,7 @@ void write_profile_3DPhi(ofstream& ofs, const _parameter prm, const int Ndiv, co
                     n1n2 += n1[a] * n2[a];
                     n2_all *= n2[a];
                 }
-                //ofs << r[0] << " " << r[1] << " " << n0 * log(abs(1.0 - n3)) << " " << n1n2 / abs(1.0 - n3) << " " << n2_all / pow(1 - n3, 3) << endl;
+                //ofs << r[0] << " " << r[1] << " " << n0 * log(abs(1.0 - n3)) << " " << n1n2 / abs(1.0 - n3) << " " << n2_all / pow(1 - n3, 2) << endl;
             }*/
             ofs << endl;
         }
