@@ -11,7 +11,7 @@ bool set_parameter(const int dim, const double eta, const double gamma, const do
 double Fid_density_2D(const struct _parameter p, const int n);
 double Fid_density_approx(const int dim, const struct _parameter p);
 double Fex_density_2D(const struct _parameter prm, const double rel_error_req);
-void F_density_dD(const int dim, const struct _parameter prm, const double rel_error_req, double F_density_set[]);
+int F_density_dD(const int dim, const struct _parameter prm, const double rel_error_req, double F_density_set[]);
 void refresh_F_minimum(const int i_vacancy, const int i_gamma, const double newF, int Fmin_at[2], double& Fmin);
 void renew_F_minimum(const int i_vacancy, const int i_gamma, const double newF, int Fmin_at[2], double& Fmin);
 void write_setting(ofstream &ofs, const int dim, const int Neta, const int Nvacancy, const int Ngamma, const double eps, const double eta_set[], const double vacancy_set[], const double gamma_set[]);
