@@ -996,7 +996,8 @@ int F_density_dD(const int dim, const struct _parameter prm, const double rel_er
     }
     else if (dim == 3)
     {
-        if (prm.cutoff_r_for_rho < 0.5)
+        //if (prm.cutoff_r_for_rho < 0.5)
+        if (prm.gamma > 400)//cutoff_for_rhoの計算の修正できるまでの仮の措置
         {
             F_density_set[0] = Fid_density_approx(dim, prm);//近似
             return_value = 1;
@@ -1009,7 +1010,7 @@ int F_density_dD(const int dim, const struct _parameter prm, const double rel_er
         //余剰自由エネルギー
         F_density_set[1] = Fex_density_3D(prm, rel_error_req);
     }
-    else 
+    else
     {
         cout << "false";
     }
@@ -1718,4 +1719,333 @@ double Fex_density_2DSm_naive(const struct _parameter prm, const int n)
     }
     val = trapezoidal_integration(n, integrand_x, delta);//ここまでで単位胞あたりの理想自由エネルギー
     return val / pow(prm.lambda, 2);// lambda^2 で割って単位体積当たりの値に変換
+}
+
+
+//半関数微分の置き場
+double n0_3D_derivative(const _parameter prm, double x, double y, double z)
+{
+    return prm.coeff_rho * Zexp(prm, x) * Zexp(prm, y) * Zexp(prm, z);
+}
+
+// 点 r[] = (x, y, z) における3次元荷重関数
+//ベクトル n1 のx成分のみ
+double n1x_3D_derivative(const _parameter prm, double x, double y, double z)
+{
+    return prm.coeff_rho * T(prm, x) * Zexp(prm, y) * Zexp(prm, z);
+}
+
+//ベクトル n1 のy成分のみ
+double n1y_3D_derivative(const _parameter prm, double x, double y, double z)
+{
+    return prm.coeff_rho * Zexp(prm, x) * T(prm, y) * Zexp(prm, z);
+}
+
+//ベクトル n1 のz成分のみ
+double n1z_3D_derivative(const _parameter prm, double x, double y, double z)
+{
+    return prm.coeff_rho * Zexp(prm, x) * Zexp(prm, y) * T(prm, z);
+}
+
+//ベクトルn2のx成分
+double n2x_3D_derivative(const _parameter prm, double x, double y, double z)
+{
+    return prm.coeff_rho * Zexp(prm, x) * T(prm, y) * T(prm, z);
+}
+
+//ベクトルn2のy成分
+double n2y_3D_derivative(const _parameter prm, double x, double y, double z)
+{
+    return prm.coeff_rho * T(prm, x) * Zexp(prm, y) * T(prm, z;
+}
+
+//ベクトルn2のz成分
+double n2z_3D_derivative(const _parameter prm, double x, double y, double z)
+{
+    return prm.coeff_rho * T(prm, x) * T(prm, y) * Zexp(prm, z);
+}
+
+double n3_3D_derivative(const struct _parameter prm, double x, double y, double z)
+{
+    return prm.coeff_rho * T(prm, x) * T(prm, y) * T(prm, z);
+}
+
+double Phi_n0_derivative(const struct _parameter prm, const double r[])
+{
+    double n0_derivative = 0.0, r_sigma[2];
+    r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < 2; j++)
+        {
+            for (int k = 0; k < 2; k++)
+            {
+                n0_derivative += ln(1.0 - n3_3D_derivative(prm, r[0] + r_sigma[i], r[1] + r_sigma[j], r[2] + r_sigma[k]));
+            }
+        }
+    }
+    return -n0_derivative / 8;
+}
+
+double n1x_derivative_wrt_x(const struct _parameter prm, double x)
+{
+    double n1x_derivative = 0.0, r_sigma[2];
+    r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+    extern double y1_global, z1_global;
+    extern _parameter prm_global;
+    double r[3] = { x, y1_global, z1_global };
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < 2; j++)
+        {
+            n1x_derivative += n2x_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2] + r_sigma[j]) / (1.0 - n3_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2] + r_sigma[j]));
+        }
+    }
+    return n1x_derivative;
+}
+
+double n1y_derivative_wrt_y(const struct _parameter prm, double y)
+{
+    double n1y_derivative = 0.0, r_sigma[2];
+    r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+    extern double x1_global, z1_global;
+    extern _parameter prm_global;
+    double r[3] = { x1_global, y, z1_global };
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < 2; j++)
+        {
+            n1y_derivative += n2x_3D_derivative(prm, r[0] + r_sigma[i], r[1], r[2] + r_sigma[j]) / (1.0 - n3_3D_derivative(prm, r[0] + r_sigma[i], r[1], r[2] + r_sigma[j]));
+        }
+    }
+    return n1y_derivative;
+}
+
+double n1z_derivative_wrt_z(const struct _parameter prm, double z)
+{
+    double n1z_derivative = 0.0, r_sigma[2];
+    r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+    extern double x1_global, y1_global;
+    extern _parameter prm_global;
+    double r[3] = { x1_global, y1_global, z };
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < 2; j++)
+        {
+            n1z_derivative += n2x_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2] + r_sigma[j]) / (1.0 - n3_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2] + r_sigma[j]));
+        }
+    }
+    return n1z_derivative;
+}
+
+double Phi_n1_derivative(const struct _parameter prm, const double r[])
+{
+    extern const int lenaw_global;
+    extern double x1_global, y1_global, z1_global, aw_global[lenaw_global];
+    extern _parameter prm_global;
+    const int Ndiv = 100, Mdiv = 50;
+    double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
+    double x_range[2] = { r[0] - 1.0 / 2.0, r[0] + 1.0 / 2.0 }, y_range[2] = { r[1] - 1.0 / 2.0, r[1] + 1.0 / 2.0 }, z_range[2] = { r[2] - 1.0 / 2.0, r[2] + 1.0 / 2.0 };
+    double solution, val = nan("");
+    bool integrable;
+    x1_global = r[0]; y1_global = r[1]; z1_global = r[2];
+    intde(n1x_derivative_wrt_x, x_range[0], x_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    intde(n1y_derivative_wrt_y, y_range[0], y_range[1], aw_global, &integ_result[1], &integ_err[1]);
+    intde(n1z_derivative_wrt_z, z_range[0], z_range[1], aw_global, &integ_result[2], &integ_err[2]);
+    for (int i = 0; i < 3; i++)
+    {
+        val += integ_result[i];
+    }
+    return val / 4;
+}
+
+double n2x_derivative_wrt_z(const struct _parameter prm, double z)
+{
+    double n2x_derivative = 0.0, r_sigma[2];
+    r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+    extern double x2_global, y2_global;
+    extern _parameter prm_global;
+    double r[3] = { x2_range, y2_global, z };
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < 2; j++)
+        {
+            n2x_derivative += n1x_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]) / (1.0 - n3_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]));
+            n2x_derivative += n2y_3D(prm, r[0], r[1] + r_sigma[i], r[2]) * n2z_3D(prm, r[0], r[1] + r_sigma[i], r[2]) / pow(1.0 - n3_3D_deivative(prm, r[0], r[1] + r_sigma[i], r[2]), 2);
+        }
+    }
+    return n2x_derivative;
+}
+
+double n2x_derivative_wrt_y(const struct _parameter prm, double y)
+{
+    extern const int lenaw_global;
+    extern double z2_global,z2_upperlimmit, aw_global[lenaw_global];
+    extern _parameter prm_global;
+    const int Ndiv = 100, Mdiv = 50;
+    double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
+    double z_range[2] = { z2_global, z2_upperlimmit };
+    double solution, val = nan("");
+    bool integrable;
+    intde(n2x_derivative_wrt_z, z_range[0], z_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    return integ_result[0];
+}
+
+double n2y_derivative_wrt_x(const struct _parameter prm, double x)
+{
+    double n2y_derivative = 0.0, r_sigma[2];
+    r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+    extern double y2_global, z2_global;
+    extern _parameter prm_global;
+    double r[3] = { x, y2_global, z2_global };
+    for (int i = 0; i < 2; i++)
+    {
+        n2y_derivative += n1x_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]) / (1.0 - n3_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]));
+        n2y_derivative += n2x_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]) * n2z_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]) / pow(1.0 - n3_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]), 2);
+    }
+    return n2y_derivative;
+}
+
+double n2y_derivative_wrt_z(const struct _parameter prm, double z)
+{
+    extern const int lenaw_global;
+    extern double z2_global, z2_upperlimmit, aw_global[lenaw_global];
+    extern _parameter prm_global;
+    const int Ndiv = 100, Mdiv = 50;
+    double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
+    double z_range[2] = { z2_global, z2_upperlimmit };
+    double solution, val = nan("");
+    bool integrable;
+    intde(n2y_derivative_wrt_x, z_range[0], z_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    return integ_result[0];
+}
+
+double n2z_derivative_wrt_y(const struct _parameter prm, double z)
+{
+    double n2z_derivative = 0.0, r_sigma[2];
+    r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+    extern double x2_global, y2_global;
+    extern _parameter prm_global;
+    double r[3] = { x2_global, y2_global, z };
+    for (int i = 0; i < 2; i++)
+    {
+        n2z_derivative += n1z_3D_derivative(prm, r[0], r[1], r[2] + r_sigma[i]) / (1.0 - n3_3D_derivative(prm, r[0], r[1], r[2] + r_sigma[i]));
+        n2z_derivative += n2x_3D_derivative(prm, r[0], r[1], r[2] + r_sigma[i]) * n2y_3D_derivative(prm, r[0], r[1], r[2] + r_sigma[i]) / pow(1.0 - n3_3D_derivative(prm, r[0], r[1], r[2] + r_sigma[i]), 2);
+    }
+    return n2z_derivative;
+}
+
+double n2z_derivative_wrt_x(const struct _parameter prm, double x)
+{
+    extern const int lenaw_global;
+    extern double y2_global, y2_upperlimmit, aw_global[lenaw_global];
+    extern _parameter prm_global;
+    const int Ndiv = 100, Mdiv = 50;
+    double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
+    double y_range[2] = { y2_global, y2_upperlimmit };
+    double solution, val = nan("");
+    bool integrable;
+    intde(n2z_derivative_wrt_y, y_range[0], y_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    return integ_result[0];
+}
+
+double Phi_n2_derivative(const struct _parameter prm, const double r[])
+{
+    extern const int lenaw_global;
+    extern double x2_global, y2_global, z2_global, x2_upperlimmit, y2_upperlimmit, z2_upperlimmit, aw_global[lenaw_global];
+    extern _parameter prm_global;
+    const int Ndiv = 100, Mdiv = 50;
+    double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
+    double x_range[2] = { r[0] - 1.0 / 2.0, r[0] + 1.0 / 2.0 }, y_range[2] = { r[1] - 1.0 / 2.0, r[1] + 1.0 / 2.0 }, z_range[2] = { r[2] - 1.0 / 2.0, r[2] + 1.0 / 2.0 };
+    double solution, val = nan("");
+    bool integrable;
+    x2_global = r[0]; y2_global = r[1]; z2_global = r[2];
+    x2_upperlimmit = x_range[1]; y2_upperlimmit = y_range[1]; z2_upperlimit = z_range[1];
+    intde(n2x_derivative_wrt_y, y_range[0], y_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    intde(n2y_derivative_wrt_z, z_range[0], z_range[1], aw_global, &integ_result[1], &integ_err[1]);
+    intde(n2z_derivative_wrt_x, x_range[0], x_range[1], aw_global, &integ_result[2], &integ_err[2]);
+    for (int i = 0; i < 3; i++)
+    {
+        val += integ_result[i];
+    }
+    return val / 2;
+}
+
+double n3_derivative_wrt_z(const struct _parameter prm, double z)
+{
+    double n3_derivative = 0.0;
+    extern double x3_global, y3_global;
+    extern _parameter prm_global;
+    double r[3] = { x3_global, y3_global, z };
+    double Tval[3], Zval[3], n1[3], n2[3], n1n2 = 0.0, n2_all = 1.0;
+    for (int i1 = 0; i1 < 3; i1++)
+    {
+        Tval[i1] = T(prm_global, r[i1]);
+        Zval[i1] = Zexp(prm_global, r[i1]);
+    }
+    n1[0] = prm_global.coeff_rho * Tval[0] * Zval[1] * Zval[2];
+    n1[1] = prm_global.coeff_rho * Zval[0] * Tval[1] * Zval[2];
+    n1[2] = prm_global.coeff_rho * Zval[0] * Zval[1] * Tval[2];
+    n2[0] = prm_global.coeff_rho * Zval[0] * Tval[1] * Tval[2];
+    n2[1] = prm_global.coeff_rho * Tval[0] * Zval[1] * Tval[2];
+    n2[2] = prm_global.coeff_rho * Tval[0] * Tval[1] * Zval[2];
+    for (int i = 0; i < 3; i++)
+    {
+        n1n2 += n1[i] * n2[i];
+        n2_all *= n2[i];
+    }
+    n3_derivative += n0_3D_derivative(prm, r[0], r[1], r[2]) / (1 - n3_3D_derivative(prm, r[0], r[1], r[2]));
+    n3_derivative += n1n2 / pow(1.0 - n3_3D_derivative(prm, r[0], r[1], r[2], 2);
+    n3_derivative += n2_all / pow(1.0 - n3_3D_derivative(prm, r[0], r[1], r[2]), 3);
+    return n3_derivative;
+}
+
+double n3_derivative_wrt_y(const struct _parameter prm, double y)
+{
+    extern const int lenaw_global;
+    extern double z3_global, z3_upperlimmit, aw_global[lenaw_global];
+    extern _parameter prm_global;
+    const int Ndiv = 100, Mdiv = 50;
+    double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
+    double z_range[2] = { z3_global, z3_upperlimmit };
+    double solution, val = nan("");
+    bool integrable;
+    intde(n3_derivative_wrt_z, z_range[0], z_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    return integ_result[0];
+}
+
+double n3_derivative_wrt_x(const struct _parameter prm, double x)
+{
+    extern const int lenaw_global;
+    extern double y3_global, y3_upperlimmit, aw_global[lenaw_global];
+    extern _parameter prm_global;
+    const int Ndiv = 100, Mdiv = 50;
+    double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
+    double y_range[2] = { y3_global, y3_upperlimmit };
+    double solution, val = nan("");
+    bool integrable;
+    intde(n3_derivative_wrt_y, y_range[0], y_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    return integ_result[0];
+}
+
+double Phi_n3_derivative(const struct _parameter prm, const double r[])
+{
+    extern const int lenaw_global;
+    extern double x3_global, y3_global, z3_global, x3_upperlimmit, y3_upperlimmit, z3_upperlimmit, aw_global[lenaw_global];
+    extern _parameter prm_global;
+    const int Ndiv = 100, Mdiv = 50;
+    double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
+    double x_range[2] = { r[0] - 1.0 / 2.0, r[0] + 1.0 / 2.0 }, y_range[2] = { r[1] - 1.0 / 2.0, r[1] + 1.0 / 2.0 }, z_range[2] = { r[2] - 1.0 / 2.0, r[2] + 1.0 / 2.0 };
+    double solution, val = nan("");
+    bool integrable;
+    x3_global = r[0]; y3_global = r[1]; z2_global = r[2];
+    x3_upperlimmit = x_range[1]; y3_upperlimmit = y_range[1]; z3_upperlimit = z_range[1];
+    intde(n3_derivative_wrt_x, x_range[0], x_range[1], aw_global, &integ_result[0], &integ_err[0]);
+    return integ_result[0];
+}
+
+double Fex_drnsity_3D_derivative(const struct _parameter prm)
+{
+    double Fex_derivative = Phi_n0_derivative(prm, r) + Phi_n1_derivative(prm, r) + Phi_n2_derivative(prm.r) + Phi_n3_derivative(prm, r);
 }
