@@ -1722,7 +1722,7 @@ double Fex_density_2DSm_naive(const struct _parameter prm, const int n)
 }
 
 
-//半関数微分の置き場
+//汎関数微分の置き場
 double n0_3D_derivative(const _parameter prm, double x, double y, double z)
 {
     return prm.coeff_rho * Zexp(prm, x) * Zexp(prm, y) * Zexp(prm, z);
@@ -2045,7 +2045,7 @@ double Phi_n3_derivative(const struct _parameter prm, const double r[])
     return integ_result[0];
 }
 
-double Fex_drnsity_3D_derivative(const struct _parameter prm)
+double Fex_density_3D_derivative(const struct _parameter prm, const double r[])
 {
     double Fex_derivative = Phi_n0_derivative(prm, r) + Phi_n1_derivative(prm, r) + Phi_n2_derivative(prm.r) + Phi_n3_derivative(prm, r);
 }
