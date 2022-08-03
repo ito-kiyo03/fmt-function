@@ -32,4 +32,7 @@ void F_density_dDSm(const int dim, const struct _parameter prm, const double rel
 void write_profile_2DSm(ofstream& ofs, const _parameter prm, const int Ndiv, const bool write_title, const bool quarter = true, const string pre_string = "");
 void write_profile_2DSmn2(ofstream& ofs, const _parameter prm, const int Ndiv, const bool write_title, const bool quarter = true, const string pre_string = "");
 void write_profile_2DrhoSm(ofstream& ofs, const _parameter prm, const int Ndiv, const bool write_title, const bool quarter = true, const string pre_string = "");
+
+double Fex_density_3D_rho_derivative(const struct _parameter prm, const double r[], double betamu, const double rel_error_req);
+double testFex_density_3D_rho_derivative(const struct _parameter prm,const int Nr, const double r[], const double rho[][Nr][Nr], double betamu);
 #endif

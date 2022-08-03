@@ -8,7 +8,8 @@
 #include "intde2.h"
 using namespace::std;
 const int lenaw_global = 8000;
-double r1_global, r2_global, aw_global[lenaw_global];
+double r1_global, r2_global, x1_global, x2_global, x3_global, y1_global, y2_global, y3_global, z1_global, z2_global, z3_global, aw_global[lenaw_global];
+double r_x, r_y, r_z, x1_upperlimit, x2_upperlimit, x3_upperlimit, y1_upperlimit, y2_upperlimit, y3_upperlimit, z1_upperlimit, z2_upperlimit, z3_upperlimit;
 _parameter prm_global;
 
 // 与えられた関数 f(prm, r[]) について、r[1] = given_r1 のときのf(prm, r[])= 0 の解 r[0] を range[0] から range[1] の範囲で求める関数。
@@ -902,50 +903,6 @@ double integrate_Phi_3D_wrt_y(const double r2)
     return val;
 }
 
-/*double integrate_Phi_3D_wrt_y(const double r2)
-{
-    extern const int lenaw_global;
-    extern double r2_global, aw_global[lenaw_global];
-    extern _parameter prm_global;
-    const int Ndiv = 100, Mdiv = 50;
-    double integ_result[2] = { 0.0, 0.0 }, integ_err[2] = { 0.0, 0.0 }, r2_range[2] = { r2, 0.5 * prm_global.lambda };
-    double solution, val = nan("");
-    bool integrable;
-    r2_global = r2;
-    // n3 = 1 の解があるかどうか探す
-    solution = solution_n3_eq_1_3D(prm_global, r2, 1.e-13, Ndiv, Mdiv);
-    if (isnan(solution)) // n3 = 1 の解がない場合、通常の積分で問題ない
-    {
-        // r0 積分の範囲は r0_range[0] から r0_range[1]。(prm_global.lambda)
-        intde(Phi_3D, r2_range[0], r2_range[1], aw_global, &integ_result[0], &integ_err[0]);
-        val = integ_result[0];
-    }
-    else // n3 = 1 の解 solution がある場合、r0 積分領域を solution で分割して和を取る
-    {
-        intde(Phi_3D, r2_range[0], solution - 1.0e-8, aw_global, &integ_result[0], &integ_err[0]);
-        intde(Phi_3D, solution + 1.0e-8, r2_range[1], aw_global, &integ_result[1], &integ_err[1]);
-        if (integ_err[0] < 0 || integ_err[1] < 0 || integ_err[0] > 1.0 || integ_err[1] > 1.0) // 分割した積分が異常値の場合
-        {
-            integrable = r0range_n3_eq_1_3D(prm_global, r2, r2_range);
-            // n3 ~= 1 となる領域のすぐ外側で Phi の各項が十分に 0 に近いとき、その領域からの積分の寄与は 0 とみなし、n3 != 1 の領域だけで積分
-            if (integrable)
-            {
-                intde(Phi_3D, r2_range[0], r2_range[1], aw_global, &integ_result[0], &integ_err[0]);
-                val = integ_result[0];
-            }
-            else
-            {
-                val = nan("");
-            }
-        }
-        else // 分割した積分が正常値の場合
-        {
-            val = integ_result[0] + integ_result[1];
-        }
-    }
-    return val;
-}*/
-
 double Fex_density_2D(const struct _parameter prm, const double rel_error_req)
 {
   extern const int lenaw_global;
@@ -1723,49 +1680,49 @@ double Fex_density_2DSm_naive(const struct _parameter prm, const int n)
 
 
 //汎関数微分の置き場
-double n0_3D_derivative(const _parameter prm, double x, double y, double z)
+double n0_3D_derivative(const struct _parameter prm, const double x, const double y, const double z)
 {
     return prm.coeff_rho * Zexp(prm, x) * Zexp(prm, y) * Zexp(prm, z);
 }
 
 // 点 r[] = (x, y, z) における3次元荷重関数
 //ベクトル n1 のx成分のみ
-double n1x_3D_derivative(const _parameter prm, double x, double y, double z)
+double n1x_3D_derivative(const struct _parameter prm, const double x, const double y, const double z)
 {
     return prm.coeff_rho * T(prm, x) * Zexp(prm, y) * Zexp(prm, z);
 }
 
 //ベクトル n1 のy成分のみ
-double n1y_3D_derivative(const _parameter prm, double x, double y, double z)
+double n1y_3D_derivative(const struct _parameter prm, const double x, const double y, const double z)
 {
     return prm.coeff_rho * Zexp(prm, x) * T(prm, y) * Zexp(prm, z);
 }
 
 //ベクトル n1 のz成分のみ
-double n1z_3D_derivative(const _parameter prm, double x, double y, double z)
+double n1z_3D_derivative(const struct _parameter prm, const double x, const double y, const double z)
 {
     return prm.coeff_rho * Zexp(prm, x) * Zexp(prm, y) * T(prm, z);
 }
 
 //ベクトルn2のx成分
-double n2x_3D_derivative(const _parameter prm, double x, double y, double z)
+double n2x_3D_derivative(const struct _parameter prm, const double x, const double y, const double z)
 {
     return prm.coeff_rho * Zexp(prm, x) * T(prm, y) * T(prm, z);
 }
 
 //ベクトルn2のy成分
-double n2y_3D_derivative(const _parameter prm, double x, double y, double z)
+double n2y_3D_derivative(const struct _parameter prm, const double x, const double y, const double z)
 {
-    return prm.coeff_rho * T(prm, x) * Zexp(prm, y) * T(prm, z;
+    return prm.coeff_rho * T(prm, x) * Zexp(prm, y) * T(prm, z);
 }
 
 //ベクトルn2のz成分
-double n2z_3D_derivative(const _parameter prm, double x, double y, double z)
+double n2z_3D_derivative(const struct _parameter prm, const double x, const double y, const double z)
 {
     return prm.coeff_rho * T(prm, x) * T(prm, y) * Zexp(prm, z);
 }
 
-double n3_3D_derivative(const struct _parameter prm, double x, double y, double z)
+double n3_3D_derivative(const struct _parameter prm, const double x, const double y, const double z)
 {
     return prm.coeff_rho * T(prm, x) * T(prm, y) * T(prm, z);
 }
@@ -1781,75 +1738,77 @@ double Phi_n0_derivative(const struct _parameter prm, const double r[])
         {
             for (int k = 0; k < 2; k++)
             {
-                n0_derivative += ln(1.0 - n3_3D_derivative(prm, r[0] + r_sigma[i], r[1] + r_sigma[j], r[2] + r_sigma[k]));
+                n0_derivative += log(1.0 - n3_3D_derivative(prm, r[0] + r_sigma[i], r[1] + r_sigma[j], r[2] + r_sigma[k]));
             }
         }
     }
     return -n0_derivative / 8;
 }
 
-double n1x_derivative_wrt_x(const struct _parameter prm, double x)
+double n1x_derivative_wrt_x(const double x)
 {
     double n1x_derivative = 0.0, r_sigma[2];
     r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
-    extern double y1_global, z1_global;
+    extern double y1_global, z1_global, r_y, r_z;
     extern _parameter prm_global;
     double r[3] = { x, y1_global, z1_global };
     for (int i = 0; i < 2; i++)
     {
         for (int j = 0; j < 2; j++)
         {
-            n1x_derivative += n2x_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2] + r_sigma[j]) / (1.0 - n3_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2] + r_sigma[j]));
+            n1x_derivative += n2x_3D_derivative(prm_global, r[0], r_y + r_sigma[i], r_z + r_sigma[j]) / (1.0 - n3_3D_derivative(prm_global, r[0], r_y + r_sigma[i], r_z + r_sigma[j]));
         }
     }
     return n1x_derivative;
 }
 
-double n1y_derivative_wrt_y(const struct _parameter prm, double y)
+double n1y_derivative_wrt_y(const double y)
 {
     double n1y_derivative = 0.0, r_sigma[2];
     r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
-    extern double x1_global, z1_global;
+    extern double x1_global, z1_global, r_x, r_z;
     extern _parameter prm_global;
     double r[3] = { x1_global, y, z1_global };
     for (int i = 0; i < 2; i++)
     {
         for (int j = 0; j < 2; j++)
         {
-            n1y_derivative += n2x_3D_derivative(prm, r[0] + r_sigma[i], r[1], r[2] + r_sigma[j]) / (1.0 - n3_3D_derivative(prm, r[0] + r_sigma[i], r[1], r[2] + r_sigma[j]));
+            n1y_derivative += n2x_3D_derivative(prm_global, r_x + r_sigma[i], r[1], r_z + r_sigma[j]) / (1.0 - n3_3D_derivative(prm_global, r_x + r_sigma[i], r[1], r_z + r_sigma[j]));
         }
     }
     return n1y_derivative;
 }
 
-double n1z_derivative_wrt_z(const struct _parameter prm, double z)
+double n1z_derivative_wrt_z(const double z)
 {
     double n1z_derivative = 0.0, r_sigma[2];
     r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
-    extern double x1_global, y1_global;
+    extern double x1_global, y1_global, r_x, r_y;
     extern _parameter prm_global;
     double r[3] = { x1_global, y1_global, z };
     for (int i = 0; i < 2; i++)
     {
         for (int j = 0; j < 2; j++)
         {
-            n1z_derivative += n2x_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2] + r_sigma[j]) / (1.0 - n3_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2] + r_sigma[j]));
+            n1z_derivative += n2x_3D_derivative(prm_global, r_x + r_sigma[i], r_y + r_sigma[j], r[2]) / (1.0 - n3_3D_derivative(prm_global, r_x + r_sigma[i], r_y + r_sigma[j], r[2]));
         }
     }
     return n1z_derivative;
 }
 
-double Phi_n1_derivative(const struct _parameter prm, const double r[])
+double Phi_n1_derivative(const struct _parameter prm, const double r[] , const double rel_error_req)
 {
     extern const int lenaw_global;
     extern double x1_global, y1_global, z1_global, aw_global[lenaw_global];
     extern _parameter prm_global;
+    const double tiny = 1.e-307;
     const int Ndiv = 100, Mdiv = 50;
     double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
     double x_range[2] = { r[0] - 1.0 / 2.0, r[0] + 1.0 / 2.0 }, y_range[2] = { r[1] - 1.0 / 2.0, r[1] + 1.0 / 2.0 }, z_range[2] = { r[2] - 1.0 / 2.0, r[2] + 1.0 / 2.0 };
     double solution, val = nan("");
     bool integrable;
-    x1_global = r[0]; y1_global = r[1]; z1_global = r[2];
+    x1_global = x_range[0]; y1_global = y_range[0]; z1_global = z_range[0];
+    intdeini(lenaw_global, tiny, rel_error_req, aw_global);
     intde(n1x_derivative_wrt_x, x_range[0], x_range[1], aw_global, &integ_result[0], &integ_err[0]);
     intde(n1y_derivative_wrt_y, y_range[0], y_range[1], aw_global, &integ_result[1], &integ_err[1]);
     intde(n1z_derivative_wrt_z, z_range[0], z_range[1], aw_global, &integ_result[2], &integ_err[2]);
@@ -1860,108 +1819,107 @@ double Phi_n1_derivative(const struct _parameter prm, const double r[])
     return val / 4;
 }
 
-double n2x_derivative_wrt_z(const struct _parameter prm, double z)
+double n2x_derivative_wrt_z(const double z)
 {
     double n2x_derivative = 0.0, r_sigma[2];
     r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
-    extern double x2_global, y2_global;
+    extern double x2_global, y2_global, r_x;
     extern _parameter prm_global;
-    double r[3] = { x2_range, y2_global, z };
+    double r[3] = { x2_global, y2_global, z };
     for (int i = 0; i < 2; i++)
     {
-        for (int j = 0; j < 2; j++)
-        {
-            n2x_derivative += n1x_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]) / (1.0 - n3_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]));
-            n2x_derivative += n2y_3D(prm, r[0], r[1] + r_sigma[i], r[2]) * n2z_3D(prm, r[0], r[1] + r_sigma[i], r[2]) / pow(1.0 - n3_3D_deivative(prm, r[0], r[1] + r_sigma[i], r[2]), 2);
-        }
+        n2x_derivative += n1x_3D_derivative(prm_global, r_x + r_sigma[i], r[1], r[2]) / (1.0 - n3_3D_derivative(prm_global, r_x + r_sigma[i], r[1], r[2]));
+        n2x_derivative += n2y_3D_derivative(prm_global, r_x + r_sigma[i], r[1], r[2]) * n2z_3D_derivative(prm_global, r_x + r_sigma[i], r[1], r[2]) / pow(1.0 - n3_3D_derivative(prm_global, r_x + r_sigma[i], r[1], r[2]), 2);
     }
     return n2x_derivative;
 }
 
-double n2x_derivative_wrt_y(const struct _parameter prm, double y)
+double n2x_derivative_wrt_y(const double y)
 {
     extern const int lenaw_global;
-    extern double z2_global,z2_upperlimmit, aw_global[lenaw_global];
+    extern double z2_global,z2_upperlimit, aw_global[lenaw_global];
     extern _parameter prm_global;
     const int Ndiv = 100, Mdiv = 50;
     double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
-    double z_range[2] = { z2_global, z2_upperlimmit };
+    double z_range[2] = { z2_global, z2_upperlimit };
     double solution, val = nan("");
     bool integrable;
     intde(n2x_derivative_wrt_z, z_range[0], z_range[1], aw_global, &integ_result[0], &integ_err[0]);
     return integ_result[0];
 }
 
-double n2y_derivative_wrt_x(const struct _parameter prm, double x)
+double n2y_derivative_wrt_x(const double x)
 {
     double n2y_derivative = 0.0, r_sigma[2];
     r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
-    extern double y2_global, z2_global;
+    extern double y2_global, z2_global, r_y;
     extern _parameter prm_global;
     double r[3] = { x, y2_global, z2_global };
     for (int i = 0; i < 2; i++)
     {
-        n2y_derivative += n1x_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]) / (1.0 - n3_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]));
-        n2y_derivative += n2x_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]) * n2z_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]) / pow(1.0 - n3_3D_derivative(prm, r[0], r[1] + r_sigma[i], r[2]), 2);
+        n2y_derivative += n1x_3D_derivative(prm_global, r[0], r_y + r_sigma[i], r[2]) / (1.0 - n3_3D_derivative(prm_global, r_y, r[1] + r_sigma[i], r[2]));
+        n2y_derivative += n2x_3D_derivative(prm_global, r[0], r_y + r_sigma[i], r[2]) * n2z_3D_derivative(prm_global, r[0], r_y + r_sigma[i], r[2]) / pow(1.0 - n3_3D_derivative(prm_global, r[0], r_y + r_sigma[i], r[2]), 2);
     }
     return n2y_derivative;
 }
 
-double n2y_derivative_wrt_z(const struct _parameter prm, double z)
+double n2y_derivative_wrt_z(const double z)
 {
     extern const int lenaw_global;
-    extern double z2_global, z2_upperlimmit, aw_global[lenaw_global];
+    extern double z2_global, z2_upperlimit, aw_global[lenaw_global];
     extern _parameter prm_global;
     const int Ndiv = 100, Mdiv = 50;
     double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
-    double z_range[2] = { z2_global, z2_upperlimmit };
+    double z_range[2] = { z2_global, z2_upperlimit };
     double solution, val = nan("");
     bool integrable;
     intde(n2y_derivative_wrt_x, z_range[0], z_range[1], aw_global, &integ_result[0], &integ_err[0]);
     return integ_result[0];
 }
 
-double n2z_derivative_wrt_y(const struct _parameter prm, double z)
+double n2z_derivative_wrt_y(const double z)
 {
     double n2z_derivative = 0.0, r_sigma[2];
     r_sigma[0] = 1.0 / 2.0; r_sigma[1] = -1.0 / 2.0;//sigma=1.0として計算
-    extern double x2_global, y2_global;
+    extern double x2_global, y2_global, r_z;
     extern _parameter prm_global;
     double r[3] = { x2_global, y2_global, z };
     for (int i = 0; i < 2; i++)
     {
-        n2z_derivative += n1z_3D_derivative(prm, r[0], r[1], r[2] + r_sigma[i]) / (1.0 - n3_3D_derivative(prm, r[0], r[1], r[2] + r_sigma[i]));
-        n2z_derivative += n2x_3D_derivative(prm, r[0], r[1], r[2] + r_sigma[i]) * n2y_3D_derivative(prm, r[0], r[1], r[2] + r_sigma[i]) / pow(1.0 - n3_3D_derivative(prm, r[0], r[1], r[2] + r_sigma[i]), 2);
+        n2z_derivative += n1z_3D_derivative(prm_global, r[0], r[1], r_z + r_sigma[i]) / (1.0 - n3_3D_derivative(prm_global, r[0], r[1], r_z + r_sigma[i]));
+        n2z_derivative += n2x_3D_derivative(prm_global, r[0], r[1], r_z + r_sigma[i]) * n2y_3D_derivative(prm_global, r[0], r[1], r_z + r_sigma[i]) / pow(1.0 - n3_3D_derivative(prm_global, r[0], r[1], r_z + r_sigma[i]), 2);
     }
     return n2z_derivative;
 }
 
-double n2z_derivative_wrt_x(const struct _parameter prm, double x)
+double n2z_derivative_wrt_x(const double x)
 {
     extern const int lenaw_global;
-    extern double y2_global, y2_upperlimmit, aw_global[lenaw_global];
+    extern double y2_global, y2_upperlimit, aw_global[lenaw_global];
     extern _parameter prm_global;
     const int Ndiv = 100, Mdiv = 50;
     double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
-    double y_range[2] = { y2_global, y2_upperlimmit };
+    double y_range[2] = { y2_global, y2_upperlimit };
     double solution, val = nan("");
     bool integrable;
     intde(n2z_derivative_wrt_y, y_range[0], y_range[1], aw_global, &integ_result[0], &integ_err[0]);
     return integ_result[0];
 }
 
-double Phi_n2_derivative(const struct _parameter prm, const double r[])
+double Phi_n2_derivative(const struct _parameter prm, const double r[],const double rel_error_req)
 {
     extern const int lenaw_global;
-    extern double x2_global, y2_global, z2_global, x2_upperlimmit, y2_upperlimmit, z2_upperlimmit, aw_global[lenaw_global];
+    extern double x2_global, y2_global, z2_global, x2_upperlimit, y2_upperlimit, z2_upperlimit, aw_global[lenaw_global];
     extern _parameter prm_global;
     const int Ndiv = 100, Mdiv = 50;
+    const double tiny = 1.e-307;
     double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
     double x_range[2] = { r[0] - 1.0 / 2.0, r[0] + 1.0 / 2.0 }, y_range[2] = { r[1] - 1.0 / 2.0, r[1] + 1.0 / 2.0 }, z_range[2] = { r[2] - 1.0 / 2.0, r[2] + 1.0 / 2.0 };
     double solution, val = nan("");
     bool integrable;
-    x2_global = r[0]; y2_global = r[1]; z2_global = r[2];
-    x2_upperlimmit = x_range[1]; y2_upperlimmit = y_range[1]; z2_upperlimit = z_range[1];
+    x2_global = x_range[0]; y2_global = y_range[0]; z2_global = z_range[0];
+    x2_upperlimit = x_range[1]; y2_upperlimit = y_range[1]; z2_upperlimit = z_range[1];
+    intdeini(lenaw_global, tiny, rel_error_req, aw_global);
     intde(n2x_derivative_wrt_y, y_range[0], y_range[1], aw_global, &integ_result[0], &integ_err[0]);
     intde(n2y_derivative_wrt_z, z_range[0], z_range[1], aw_global, &integ_result[1], &integ_err[1]);
     intde(n2z_derivative_wrt_x, x_range[0], x_range[1], aw_global, &integ_result[2], &integ_err[2]);
@@ -1972,7 +1930,7 @@ double Phi_n2_derivative(const struct _parameter prm, const double r[])
     return val / 2;
 }
 
-double n3_derivative_wrt_z(const struct _parameter prm, double z)
+double n3_derivative_wrt_z(const double z)
 {
     double n3_derivative = 0.0;
     extern double x3_global, y3_global;
@@ -1995,57 +1953,786 @@ double n3_derivative_wrt_z(const struct _parameter prm, double z)
         n1n2 += n1[i] * n2[i];
         n2_all *= n2[i];
     }
-    n3_derivative += n0_3D_derivative(prm, r[0], r[1], r[2]) / (1 - n3_3D_derivative(prm, r[0], r[1], r[2]));
-    n3_derivative += n1n2 / pow(1.0 - n3_3D_derivative(prm, r[0], r[1], r[2], 2);
-    n3_derivative += n2_all / pow(1.0 - n3_3D_derivative(prm, r[0], r[1], r[2]), 3);
+    n3_derivative += n0_3D_derivative(prm_global, r[0], r[1], r[2]) / (1 - n3_3D_derivative(prm_global, r[0], r[1], r[2]));
+    n3_derivative += n1n2 / pow(1.0 - n3_3D_derivative(prm_global, r[0], r[1], r[2]), 2);
+    n3_derivative += n2_all / pow(1.0 - n3_3D_derivative(prm_global, r[0], r[1], r[2]), 3);
     return n3_derivative;
 }
 
-double n3_derivative_wrt_y(const struct _parameter prm, double y)
+double n3_derivative_wrt_y(const double y)
 {
     extern const int lenaw_global;
-    extern double z3_global, z3_upperlimmit, aw_global[lenaw_global];
+    extern double z3_global, z3_upperlimit, aw_global[lenaw_global];
     extern _parameter prm_global;
     const int Ndiv = 100, Mdiv = 50;
     double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
-    double z_range[2] = { z3_global, z3_upperlimmit };
+    double z_range[2] = { z3_global, z3_upperlimit };
     double solution, val = nan("");
     bool integrable;
     intde(n3_derivative_wrt_z, z_range[0], z_range[1], aw_global, &integ_result[0], &integ_err[0]);
     return integ_result[0];
 }
 
-double n3_derivative_wrt_x(const struct _parameter prm, double x)
+double n3_derivative_wrt_x(const double x)
 {
     extern const int lenaw_global;
-    extern double y3_global, y3_upperlimmit, aw_global[lenaw_global];
+    extern double y3_global, y3_upperlimit, aw_global[lenaw_global];
     extern _parameter prm_global;
     const int Ndiv = 100, Mdiv = 50;
     double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
-    double y_range[2] = { y3_global, y3_upperlimmit };
+    double y_range[2] = { y3_global, y3_upperlimit };
     double solution, val = nan("");
     bool integrable;
     intde(n3_derivative_wrt_y, y_range[0], y_range[1], aw_global, &integ_result[0], &integ_err[0]);
     return integ_result[0];
 }
 
-double Phi_n3_derivative(const struct _parameter prm, const double r[])
+double Phi_n3_derivative(const struct _parameter prm, const double r[], const double rel_error_req)
 {
     extern const int lenaw_global;
-    extern double x3_global, y3_global, z3_global, x3_upperlimmit, y3_upperlimmit, z3_upperlimmit, aw_global[lenaw_global];
+    extern double x3_global, y3_global, z3_global, x3_upperlimit, y3_upperlimit, z3_upperlimit, aw_global[lenaw_global];
     extern _parameter prm_global;
     const int Ndiv = 100, Mdiv = 50;
+    const double tiny = 1.e-307;
     double integ_result[3] = { 0.0, 0.0, 0.0 }, integ_err[3] = { 0.0, 0.0, 0.0 };
     double x_range[2] = { r[0] - 1.0 / 2.0, r[0] + 1.0 / 2.0 }, y_range[2] = { r[1] - 1.0 / 2.0, r[1] + 1.0 / 2.0 }, z_range[2] = { r[2] - 1.0 / 2.0, r[2] + 1.0 / 2.0 };
     double solution, val = nan("");
     bool integrable;
-    x3_global = r[0]; y3_global = r[1]; z2_global = r[2];
-    x3_upperlimmit = x_range[1]; y3_upperlimmit = y_range[1]; z3_upperlimit = z_range[1];
+    x3_global = x_range[0]; y3_global = y_range[0]; z2_global = z_range[0];
+    x3_upperlimit = x_range[1]; y3_upperlimit = y_range[1]; z3_upperlimit = z_range[1];
+    intdeini(lenaw_global, tiny, rel_error_req, aw_global);
     intde(n3_derivative_wrt_x, x_range[0], x_range[1], aw_global, &integ_result[0], &integ_err[0]);
     return integ_result[0];
 }
 
-double Fex_density_3D_derivative(const struct _parameter prm, const double r[])
+double Fex_density_3D_rho_derivative(const struct _parameter prm, const double r[], double betamu, const double rel_error_req)
 {
-    double Fex_derivative = Phi_n0_derivative(prm, r) + Phi_n1_derivative(prm, r) + Phi_n2_derivative(prm.r) + Phi_n3_derivative(prm, r);
+    extern double r_x, r_y, r_z;
+    extern _parameter prm_global;
+    r_x = r[0]; r_y = r[1]; r_z = r[2];
+
+    if (r[0] <= 1.0 && r[1] <= 1.0 && r[2] <= 1.0)
+    {
+        return 0;
+    }
+    else
+    {
+        double n0_derivative = Phi_n0_derivative(prm, r);
+        double n1_derivative = Phi_n1_derivative(prm, r, rel_error_req);
+        double n2_derivative = Phi_n2_derivative(prm, r, rel_error_req);
+        double n3_derivative = Phi_n3_derivative(prm, r, rel_error_req);
+
+        double Fex_derivative = n0_derivative + n1_derivative + n2_derivative + n3_derivative;
+        return exp(-Fex_derivative + betamu);
+    }
+}
+
+
+
+//テスト
+/*double n_alpha_3D_naive(const struct _parameter prm, const int n)
+{
+    double rdiv[n], r[3], integrand_x[n], integrand_y[n], integrand_z[n], delta, val;
+    divide_unit_cell(prm, n, rdiv);
+    delta = rdiv[1] - rdiv[0];
+    for (int i0 = 0; i0 < n; i0++)
+    {
+        r[0] = rdiv[i0];
+        for (int i1 = 0; i1 < n; i1++)
+        {
+            r[1] = rdiv[i1];
+            for (int i2 = 0; i2 < n; i2++)
+            {
+                r[2] = rdiv[i2];
+                integrand_z[i2] = n_3(prm, r, rho);
+            }
+            integrand_y[i1] = trapezoidal_integration(n, integrand_z, delta);
+        }
+        integrand_x[i0] = trapezoidal_integration(n, integrand_y, delta);
+    }
+    val = trapezoidal_integration(n, integrand_x, delta);//ここまでで単位胞あたりの理想自由エネルギー
+    return val / pow(prm.lambda, 3);// lambda^3 で割って単位体積当たりの値に変換
+}*/
+
+void n_alpha_divide_unit_cell(const struct _parameter prm, const int n, double rdiv[])
+{
+    for (int i = 0; i < n; i++)
+    {
+        rdiv[i] = -1.0 + double(i) / (n - 1.0);
+    }
+}
+
+double rho_calculate(const struct _parameter prm, const int Nr, const double r_integ[], const double rho[][Nr][Nr])
+{
+    cout << "caluculate rho  ";
+    if (abs(r_integ[0]) <= 1.0 && abs(r_integ[1]) <= 1.0 && abs(r_integ[2]) <= 1.0)
+    {
+        return 0;
+    }
+    else
+    {
+        int ceilx = ceil(r_integ[0] / (2 * prm.lambda)), ceily = ceil(r_integ[1] / (2 * prm.lambda)), ceilz = ceil(r_integ[2] / (2 * prm.lambda));
+        return rho[ceilx][ceily][ceilz];
+    }
+}
+
+/*double n_alpha_rho(const struct _parameter prm, const double r_integrange[], const int Nr, const double r[], const double rho[][Nr][Nr])
+{
+    if (abs(r_integrange[0]) <= 1.0 && abs(r_integrange[1]) <= 1.0 && abs(r_integrange[2]) <= 1.0)
+    {
+        return 0;
+    }
+    else
+    {
+        int floorx = floor(r_integrange[0] / (2 * prm.lambda)), floory = floor(r_integrange[1] / (2 * prm.lambda)), floorz = floor(r_integrange[2] / (2 * prm.lambda));
+        int ceilx = ceil(r_integrange[0] / (2 * prm.lambda)), ceily = ceil(r_integrange[1] / (2 * prm.lambda)), ceilz = ceil(r_integrange[2] / (2 * prm.lambda));
+        double delta = sqrt(pow(floorx - ceilx, 2) + pow(floory - ceily, 2) + pow(floorz - ceilz, 2));
+        return (rho[floorx][floory][floorz] - rho[ceilx][ceily][ceilz]) * delta / 2;
+    }
+}*/
+
+double n_alpha_rho(const struct _parameter prm, const double r_integrange[], const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n_alpha  ";
+    if (abs(r_integrange[0]) <= 1.0 && abs(r_integrange[1]) <= 1.0 && abs(r_integrange[2]) <= 1.0)
+    {
+        return 0;
+    }
+    else
+    {
+        double r_integ[3], pmsigma[2], sigma[3], r_sigma[3], rdiv[2], delta;
+        double integrand_x[n], integrand_y[n], integrand_z[n];
+        pmsigma[0] = 1.0 / 2.0; pmsigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+        n_alpha_divide_unit_cell(prm, n, rdiv);
+        delta = rdiv[1] - rdiv[0];
+        for (int i = 0; i < 3; i++)
+        {
+            sigma[i] = pmsigma[0];
+        }
+
+        for (int integ_x = 0; integ_x < n; integ_x++)
+        {
+            r_integ[0] = r[0] - 0.5 + integ_x / (n - 1);
+            for (int integ_y = 0; integ_y < n; integ_x++)
+            {
+                r_integ[1] = r[1] - 0.5 + integ_y / (n - 1);
+                for (int integ_z = 0; integ_z < n; integ_z++)
+                {
+                    r_integ[2] = r[2] - 0.5 + integ_z / (n - 1);
+                    integrand_z[integ_z] = rho_calculate(prm, Nr, r_integ, rho);
+                }
+                integrand_y[integ_y] = trapezoidal_integration(n, integrand_z, delta);
+            }
+            integrand_x[integ_x] = trapezoidal_integration(n, integrand_y, delta);
+        }
+        double val = trapezoidal_integration(n, integrand_x, delta);
+
+        cout << endl;
+        return val;
+    }
+}
+
+double n_0(const struct _parameter prm, const double r_sigma[], const double sigma[], const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n0  ";
+    double n0 = 0.0, r_integrange[3];
+    for (int i0 = 0; i0 < 2; i0++)
+    {
+        if (i0 == 0)
+        {
+            r_integrange[0] = r[0] + sigma[0];
+        }
+        else
+        {
+            r_integrange[0] = r[0] - sigma[0];
+        }
+        for (int i1 = 0; i1 < 2; i1++)
+        {
+            if (i1 == 0)
+            {
+                r_integrange[1] = r[1] + sigma[1];
+            }
+            else
+            {
+                r_integrange[1] = r[1] - sigma[1];
+            }
+            for (int i2 = 0; i2 < 2; i2++)
+            {
+                if (i2 == 0)
+                {
+                    r_integrange[2] = r[2] + sigma[2];
+                }
+                else
+                {
+                    r_integrange[2] = r[2] - sigma[2];
+                }
+                n0 += n_alpha_rho(prm, r_integrange, Nr, r, rho, n);
+            }
+        }
+    }
+
+    return n0 / 8;
+}
+
+double n_1x(const struct _parameter prm, const double r_sigma[], const double sigma[], const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n1x  ";
+    double rdiv[n], r_integrange[3], integrand_x[n], integrand_y[n], integrand_z[n], delta, val;
+    n_alpha_divide_unit_cell(prm, n, rdiv);
+    delta = rdiv[1] - rdiv[0];
+
+    for (int i1 = 0; i1 < 2; i1++)
+    {
+        if (i1 == 0)
+        {
+            r_integrange[1] = r[1] + sigma[1];
+        }
+        else
+        {
+            r_integrange[1] = r[1] - sigma[1];
+        }
+        for (int i2 = 0; i2 < n; i2++)
+        {
+            if (i2 == 0)
+            {
+                r_integrange[2] = r[2] + sigma[2];
+            }
+            else
+            {
+                r_integrange[2] = r[2] - sigma[2];
+            }
+            for (int i0 = 0; i0 < n; i0++)
+            {
+                if (sigma[0] > 0)
+                {
+                    r_integrange[0] = r_sigma[0] + rdiv[i0];
+                }
+                else
+                {
+                    r_integrange[0] = r_sigma[0] + 0.5 - rdiv[i0];
+                }
+                integrand_z[i0] = n_alpha_rho(prm, r_integrange, Nr, r, rho, n);
+            }
+            integrand_y[i2] = trapezoidal_integration(n, integrand_z, delta);
+        }
+        integrand_x[i1] = trapezoidal_integration(n, integrand_y, delta);
+    }
+    val = trapezoidal_integration(n, integrand_x, delta);
+
+    return val / 4;
+}
+
+double n_1y(const struct _parameter prm, const double r_sigma[], const double sigma[], const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n1y  ";
+    double rdiv[n], r_integrange[3], integrand_x[n], integrand_y[n], integrand_z[n], delta, val;
+    n_alpha_divide_unit_cell(prm, n, rdiv);
+    delta = rdiv[1] - rdiv[0];
+
+    for (int i0 = 0; i0 < 2; i0++)
+    {
+        if (i0 == 0)
+        {
+            r_integrange[0] = r[0] + sigma[0];
+        }
+        else
+        {
+            r_integrange[0] = r[0] - sigma[0];
+        }
+        for (int i2 = 0; i2 < n; i2++)
+        {
+            if (i2 == 0)
+            {
+                r_integrange[2] = r[2] + sigma[2];
+            }
+            else
+            {
+                r_integrange[2] = r[2] - sigma[2];
+            }
+            for (int i1 = 0; i1 < n; i1++)
+            {
+                if (sigma[1] > 0)
+                {
+                    r_integrange[1] = r_sigma[1] + rdiv[i1];
+                }
+                else
+                {
+                    r_integrange[1] = r_sigma[1] + 0.5 - rdiv[i1];
+                }
+                integrand_y[i1] = n_alpha_rho(prm, r_integrange, Nr, r, rho, n);
+            }
+            integrand_z[i2] = trapezoidal_integration(n, integrand_z, delta);
+        }
+        integrand_x[i0] = trapezoidal_integration(n, integrand_y, delta);
+    }
+    val = trapezoidal_integration(n, integrand_x, delta);
+
+    return val / 4;
+}
+
+double n_1z(const struct _parameter prm, const double r_sigma[], const double sigma[], const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n1z  ";
+    double rdiv[n], r_integrange[3], integrand_x[n], integrand_y[n], integrand_z[n], delta, val;
+    n_alpha_divide_unit_cell(prm, n, rdiv);
+    delta = rdiv[1] - rdiv[0];
+
+    for (int i0 = 0; i0 < 2; i0++)
+    {
+        if (i0 == 0)
+        {
+            r_integrange[0] = r[0] + sigma[0];
+        }
+        else
+        {
+            r_integrange[0] = r[0] - sigma[0];
+        }
+        for (int i1 = 0; i1 < n; i1++)
+        {
+            if (sigma[1] > 0)
+            {
+                r_integrange[1] = r[1] + rdiv[i1];
+            }
+            else
+            {
+                r_integrange[1] = r[1]  + 0.5 - rdiv[i1];
+            }
+            for (int i2 = 0; i2 < n; i2++)
+            {
+                if (sigma[2] > 0)
+                {
+                    r_integrange[2] = r_sigma[2] + rdiv[i2];
+                }
+                else
+                {
+                    r_integrange[2] = r_sigma[2] + 0.5 - rdiv[i2];
+                }
+                integrand_z[i2] = n_alpha_rho(prm, r_integrange, Nr, r, rho, n);
+            }
+            integrand_y[i1] = trapezoidal_integration(n, integrand_z, delta);
+        }
+        integrand_x[i0] = trapezoidal_integration(n, integrand_y, delta);
+    }
+    val = trapezoidal_integration(n, integrand_x, delta);
+
+    return val / 4;
+}
+
+double n_2x(const struct _parameter prm, const double r_sigma[], const double sigma[], const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n2x  ";
+    double rdiv[n], r_integrange[3], integrand_x[n], integrand_y[n], integrand_z[n], delta, val;
+    n_alpha_divide_unit_cell(prm, n, rdiv);
+    delta = rdiv[1] - rdiv[0];
+
+    for (int i0 = 0; i0 < 2;i0++)
+    {
+        if (i0 == 0)
+        {
+            r_integrange[0] = r[0] + sigma[0];
+        }
+        else
+        {
+            r_integrange[0] = r[0] - sigma[0];
+        }
+        for (int i1 = 0; i1 < n; i1++)
+        {
+            if (sigma[1] > 0)
+            {
+                r_integrange[1] = r_sigma[1] + rdiv[i1];
+            }
+            else
+            {
+                r_integrange[1] = r_sigma[1] - rdiv[i1];
+            }
+            for (int i2 = 0; i2 < n; i2++)
+            {
+                if (sigma[2] > 0)
+                {
+                    r_integrange[2] = r_sigma[2] + rdiv[i2];
+                }
+                else
+                {
+                    r_integrange[2] = r_sigma[2] - rdiv[i2];
+                }
+                integrand_z[i2] = n_alpha_rho(prm, r_integrange, Nr, r, rho, n);
+            }
+            integrand_y[i1] = trapezoidal_integration(n, integrand_z, delta);
+        }
+        integrand_x[i0] = trapezoidal_integration(n, integrand_y, delta);
+    }
+    val = trapezoidal_integration(n, integrand_x, delta);
+    
+    return val / 2;
+}
+
+double n_2y(const struct _parameter prm, const double r_sigma[], const double sigma[], const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n2y  ";
+    double rdiv[n], r_integrange[3], integrand_x[n], integrand_y[n], integrand_z[n], delta, val;
+    n_alpha_divide_unit_cell(prm, n, rdiv);
+    delta = rdiv[1] - rdiv[0];
+
+    for (int i1 = 0; i1 < 2; i1++)
+    {
+        if (i1 == 0)
+        {
+            r_integrange[1] = r[1] + sigma[1];
+        }
+        else
+        {
+            r_integrange[1] = r[1] - sigma[1];
+        }
+        for (int i0 = 0; i0 < n; i0++)
+        {
+            if (sigma[1] > 0)
+            {
+                r_integrange[0] = r_sigma[0] + rdiv[i0];
+            }
+            else
+            {
+                r_integrange[0] = r_sigma[0] - rdiv[i0];
+            }
+            for (int i2 = 0; i2 < n; i2++)
+            {
+                if (sigma[2] > 0)
+                {
+                    r_integrange[2] = r_sigma[2] + rdiv[i2];
+                }
+                else
+                {
+                    r_integrange[2] = r_sigma[2] - rdiv[i2];
+                }
+                integrand_z[i2] = n_alpha_rho(prm, r_integrange, Nr, r, rho, n);
+            }
+            integrand_x[i0] = trapezoidal_integration(n, integrand_z, delta);
+        }
+        integrand_y[i1] = trapezoidal_integration(n, integrand_x, delta);
+    }
+    val = trapezoidal_integration(n, integrand_y, delta);
+
+    return val / 2;
+}
+
+double n_2z(const struct _parameter prm, const double r_sigma[], const double sigma[], const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n2z  ";
+    double rdiv[n], r_integrange[3], integrand_x[n], integrand_y[n], integrand_z[n], delta, val;
+    n_alpha_divide_unit_cell(prm, n, rdiv);
+    delta = rdiv[1] - rdiv[0];
+
+    for (int i2 = 0; i2 < 2; i2++)
+    {
+        if (i2 == 0)
+        {
+            r_integrange[2] = r[2] + sigma[2];
+        }
+        else
+        {
+            r_integrange[2] = r[2] - sigma[2];
+        }
+        for (int i0 = 0; i0 < n; i0++)
+        {
+            if (sigma[0] > 0)
+            {
+                r_integrange[0] = r_sigma[0] + rdiv[i0];
+            }
+            else
+            {
+                r_integrange[0] = r_sigma[0] - rdiv[i0];
+            }
+            for (int i1 = 0; i1 < n; i1++)
+            {
+                if (sigma[1] > 0)
+                {
+                    r_integrange[1] = r_sigma[1] + rdiv[i1];
+                }
+                else
+                {
+                    r_integrange[1] = r_sigma[1] - rdiv[i1];
+                }
+                integrand_y[i1] = n_alpha_rho(prm, r_integrange, Nr, r, rho, n);
+            }
+            integrand_x[i0] = trapezoidal_integration(n, integrand_y, delta);
+        }
+        integrand_z[i2] = trapezoidal_integration(n, integrand_x, delta);
+    }
+    val = trapezoidal_integration(n, integrand_z, delta);
+    
+    return val / 2;
+}
+
+double n_3(const struct _parameter prm, const double r_sigma[], const double sigma[], const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n3  ";
+    double rdiv[n], r_integrange[3], integrand_x[n], integrand_y[n], integrand_z[n], delta, val;
+    n_alpha_divide_unit_cell(prm, n, rdiv);
+    delta = rdiv[1] - rdiv[0];
+    for (int i0 = 0; i0 < n; i0++)
+    {
+        if (sigma[0] > 0)
+        {
+            r_integrange[0] = r_sigma[0] + rdiv[i0];
+        }
+        else
+        {
+            r_integrange[0] = r_sigma[0] + 0.5 - rdiv[i0];
+        }
+        for (int i1 = 0; i1 < n; i1++)
+        {
+            if (sigma[1] > 0)
+            {
+                r_integrange[1] = r_sigma[1] + rdiv[i1];
+            }
+            else
+            {
+                r_integrange[1] = r_sigma[1] + 0.5 -rdiv[i1];
+            }
+            for (int i2 = 0; i2 < n; i2++)
+            {
+                if (sigma[2] > 0)
+                {
+                    r_integrange[2] = r_sigma[2] + rdiv[i2];
+                }
+                else
+                {
+                    r_integrange[2] = r_sigma[2] + 0.5 - rdiv[i2];
+                }
+                integrand_z[i2] = n_alpha_rho(prm, r_integrange, Nr, r, rho, n);
+            }
+            integrand_y[i1] = trapezoidal_integration(n, integrand_z, delta);
+        }
+        integrand_x[i0] = trapezoidal_integration(n, integrand_y, delta);
+    }
+    val = trapezoidal_integration(n, integrand_x, delta);
+
+    return val / pow(prm.lambda, 3);// lambda^3 で割って単位体積当たりの値に変換
+}
+
+double testPhi_n0_derivative(const struct _parameter prm, const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n0_derivative  ";
+    double n0_derivative = 0.0, pmsigma[2], sigma[3], r_sigma[3];
+    pmsigma[0] = 1.0 / 2.0; pmsigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+
+    for (int i = 0; i < 2; i++)
+    {
+        r_sigma[0] = r[0] + pmsigma[i];
+        sigma[0] = pmsigma[i];
+        for (int j = 0; j < 2; j++)
+        {
+            r_sigma[1] = r[1] + pmsigma[j];
+            sigma[1] = pmsigma[j];
+            for (int k = 0; k < 2; k++)
+            {
+                r_sigma[2] = r[2] + pmsigma[k];
+                sigma[2] = pmsigma[k];
+                n0_derivative += log(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n));
+            }
+        }
+    }
+
+    return -n0_derivative / 8;
+}
+
+double testPhi_n1_derivative(const struct _parameter prm, const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n1_derivative  ";
+    double n1x_derivative = 0.0, n1y_derivative = 0.0, n1z_derivative = 0.0;
+    double r_integ[3], pmsigma[2], sigma[3], r_sigma[3], rdiv[2], delta;
+    double integrand_x[n], integrand_y[n], integrand_z[n];
+    pmsigma[0] = 1.0 / 2.0; pmsigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+    n_alpha_divide_unit_cell(prm, n, rdiv);
+    delta = rdiv[1] - rdiv[0];
+    for (int i = 0; i < 3; i++)
+    {
+        sigma[i] = pmsigma[0];
+    }
+
+    for (int integ = 0; integ < n; integ++)
+    {
+        r_integ[0] = r[0] - 0.5 + integ / (n - 1);
+        for (int i = 0; i < 2; i++)
+        {
+            r_sigma[1] = r[1] + pmsigma[i];
+            sigma[1] = pmsigma[i];
+            for (int j = 0; j < 2; j++)
+            {
+                r_sigma[2] = r[2] + pmsigma[j];
+                sigma[2] = pmsigma[j];
+                n1x_derivative += n_2x(prm, r_sigma, sigma, Nr, r, rho, n) / abs(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n));
+            }
+        }
+        integrand_x[integ] = n1x_derivative;
+    }
+    double val_x = trapezoidal_integration(n, integrand_x, delta);
+
+    for (int integ = 0; integ < n; integ++)
+    {
+        r_integ[1] = r[1] - 0.5 + integ / (n - 1);
+        for (int i = 0; i < 2; i++)
+        {
+            r_sigma[0] = r[0] + pmsigma[i];
+            sigma[0] = pmsigma[i];
+            for (int j = 0; j < 2; j++)
+            {
+                r_sigma[2] = r[2] + pmsigma[j];
+                sigma[2] = pmsigma[j];
+                n1y_derivative += n_2y(prm, r_sigma, sigma, Nr, r, rho, n) / abs(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n));
+            }
+        }
+        integrand_y[integ] = n1y_derivative;
+    }
+    double val_y = trapezoidal_integration(n, integrand_y, delta);
+
+    for (int integ = 0; integ < n; integ++)
+    {
+        r_integ[2] = r[2] - 0.5 + integ / (n - 1);
+        for (int i = 0; i < 2; i++)
+        {
+            r_sigma[0] = r[0] + pmsigma[i];
+            sigma[0] = pmsigma[i];
+            for (int j = 0; j < 2; j++)
+            {
+                r_sigma[1] = r[1] + pmsigma[j];
+                sigma[1] = pmsigma[j];
+                n1z_derivative += n_2z(prm, r_sigma, sigma, Nr, r, rho, n) / abs(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n));
+            }
+        }
+        integrand_z[integ] = n1z_derivative;
+    }
+    double val_z = trapezoidal_integration(n, integrand_z, delta);
+
+    return (val_x + val_y + val_z) / 4;
+}
+
+double testPhi_n2_derivative(const struct _parameter prm, const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n2_derivative  ";
+    double n2x_derivative = 0.0, n2y_derivative = 0.0, n2z_derivative = 0.0;
+    double r_integ[3], pmsigma[2], sigma[3], r_sigma[3], rdiv[2], delta;
+    double integrand_x[n], integrand_y[n], integrand_z[n];
+    pmsigma[0] = 1.0 / 2.0; pmsigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+    n_alpha_divide_unit_cell(prm, n, rdiv);
+    delta = rdiv[1] - rdiv[0];
+    for (int i = 0; i < 3; i++)
+    {
+        sigma[i] = pmsigma[0];
+    }
+
+    for (int integ_y = 0; integ_y < n; integ_y++)
+    {
+        r_integ[1] = r[1] - 0.5 + integ_y / (n - 1);
+        for (int integ_z = 0; integ_z < n; integ_z++)
+        {
+            r_integ[2] = r[2] - 0.5 + integ_z / (n - 1);
+            for (int j = 0; j < 2; j++)
+            {
+                r_sigma[0] = r[0] + pmsigma[j];
+                sigma[0] = pmsigma[j];
+                n2x_derivative += n_1x(prm, r_sigma, sigma, Nr, r, rho, n) / abs(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n));
+                n2x_derivative += n_2y(prm, r_sigma, sigma, Nr, r, rho, n) * n_2z(prm, r_sigma, sigma, Nr, r, rho, n) / pow(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n), 2);
+            }
+            integrand_z[integ_z] = n2x_derivative;
+        }
+        integrand_y[integ_y] = trapezoidal_integration(n, integrand_z, delta);
+    }
+    double val_x = trapezoidal_integration(n, integrand_y, delta);
+
+    for (int integ_x = 0; integ_x < n; integ_x++)
+    {
+        r_integ[0] = r[0] - 0.5 + integ_x / (n - 1);
+        for (int integ_z = 0; integ_z < n; integ_z++)
+        {
+            r_integ[2] = r[2] - 0.5 + integ_z / (n - 1);
+            for (int j = 0; j < 2; j++)
+            {
+                r_sigma[1] = r[1] + pmsigma[j];
+                sigma[1] = pmsigma[j];
+                n2y_derivative += n_1y(prm, r_sigma, sigma, Nr, r, rho, n) / abs(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n));
+                n2y_derivative += n_2x(prm, r_sigma, sigma, Nr, r, rho, n) * n_2z(prm, r_sigma, sigma, Nr, r, rho, n) / pow(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n), 2);
+            }
+            integrand_z[integ_z] = n2y_derivative;
+        }
+        integrand_x[integ_x] = trapezoidal_integration(n, integrand_z, delta);
+    }
+    double val_y = trapezoidal_integration(n, integrand_x, delta);
+
+    for (int integ_x = 0; integ_x < n; integ_x++)
+    {
+        r_integ[0] = r[0] - 0.5 + integ_x / (n - 1);
+        for (int integ_y = 0; integ_y < n; integ_y++)
+        {
+            r_integ[1] = r[1] - 0.5 + integ_y / (n - 1);
+            for (int j = 0; j < 2; j++)
+            {
+                r_sigma[2] = r[2] + pmsigma[j];
+                sigma[2] = pmsigma[j];
+                n2z_derivative += n_1z(prm, r_sigma, sigma, Nr, r, rho, n) / abs(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n));
+                n2z_derivative += n_2x(prm, r_sigma, sigma, Nr, r, rho, n) * n_2y(prm, r_sigma, sigma, Nr, r, rho, n) / pow(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n), 2);
+            }
+            integrand_y[integ_y] = n2z_derivative;
+        }
+        integrand_x[integ_x] = trapezoidal_integration(n, integrand_y, delta);
+    }
+    double val_z = trapezoidal_integration(n, integrand_x, delta);
+
+    return (val_x + val_y + val_z) / 2;
+}
+
+double testPhi_n3_derivative(const struct _parameter prm, const int Nr, const double r[], const double rho[][Nr][Nr], const int n)
+{
+    cout << "caluculate n3_derivative  ";
+    double n3_derivative = 0.0;
+    double r_integ[3], pmsigma[2], sigma[3], r_sigma[3], rdiv[2], delta;
+    double integrand_x[n], integrand_y[n], integrand_z[n];
+    pmsigma[0] = 1.0 / 2.0; pmsigma[1] = -1.0 / 2.0;//sigma=1.0として計算
+    n_alpha_divide_unit_cell(prm, n, rdiv);
+    delta = rdiv[1] - rdiv[0];
+    for (int i = 0; i < 3; i++)
+    {
+        sigma[i] = pmsigma[0];
+    }
+
+    for (int integ_x = 0; integ_x < n; integ_x++)
+    {
+        r_integ[0] = r[0] - 0.5 + integ_x / (n - 1);
+        for (int integ_y = 0; integ_y < n; integ_x++)
+        {
+            r_integ[1] = r[1] - 0.5 + integ_y / (n - 1);
+            for (int integ_z = 0; integ_z < n; integ_z++)
+            {
+                r_integ[2] = r[2] - 0.5 + integ_z / (n - 1);
+                n3_derivative += n_0(prm, r_sigma, sigma, Nr, r, rho, n) / (1 - n_3(prm, r_sigma, sigma, Nr, r, rho, n));
+                n3_derivative += (n_1x(prm, r_sigma, sigma, Nr, r, rho, n) * n_2x(prm, r_sigma, sigma, Nr, r, rho, n) + n_1y(prm, r_sigma, sigma, Nr, r, rho, n) * n_2y(prm, r_sigma, sigma, Nr, r, rho, n) + n_1z(prm, r_sigma, sigma, Nr, r, rho, n) * n_2z(prm, r_sigma, sigma, Nr, r, rho, n)) / pow(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n), 2);
+                n3_derivative += n_2x(prm, r_sigma, sigma, Nr, r, rho, n) * n_2y(prm, r_sigma, sigma, Nr, r, rho, n) * n_2z(prm, r_sigma, sigma, Nr, r, rho, n) / pow(1.0 - n_3(prm, r_sigma, sigma, Nr, r, rho, n), 3);
+                integrand_z[integ_z] = n3_derivative;
+            }
+            integrand_y[integ_y] = trapezoidal_integration(n, integrand_z, delta);
+        }
+        integrand_x[integ_x] = trapezoidal_integration(n, integrand_y, delta);
+    }
+    double val = trapezoidal_integration(n, integrand_x, delta);
+
+    return val;
+}
+
+double testFex_density_3D_rho_derivative(const struct _parameter prm, const int Nr, const double r[], const double rho[][Nr][Nr], double betamu)
+{
+    extern _parameter prm_global;
+
+    if (r[0] <= 1.0 && r[1] <= 1.0 && r[2] <= 1.0)
+    {
+        return 0;
+    }
+    else
+    {
+        double n0_derivative = testPhi_n0_derivative(prm, Nr, r, rho, 2);
+        double n1_derivative = testPhi_n1_derivative(prm, Nr, r, rho, 2);
+        double n2_derivative = testPhi_n2_derivative(prm, Nr, r, rho, 2);
+        double n3_derivative = testPhi_n3_derivative(prm, Nr, r, rho, 2);
+
+        double Fex_derivative = n0_derivative + n1_derivative + n2_derivative + n3_derivative;
+        return exp(-Fex_derivative + betamu);
+    }
 }
